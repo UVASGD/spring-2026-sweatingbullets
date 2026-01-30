@@ -77,3 +77,6 @@ crashlytics-build.properties
 # Project analysis files
 Assets/arthur/
 Assets/arthur.meta
+
+# Windsurf workspace files
+.windsurf/
