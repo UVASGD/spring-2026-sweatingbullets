@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 8acb2371b9f0ce3429e7935fa5efe263
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 135316
+  packageName: Character Controller SUPER
+  packageVersion: 22.10.9f
+  assetPath: Assets/SUPER Character Controller/SUPER Character Controller/SUPERCharacterAIO.cs
+  uploadId: 532477

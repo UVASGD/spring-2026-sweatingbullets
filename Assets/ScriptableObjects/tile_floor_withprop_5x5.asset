@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd400bdcc32944e4daf99f32fa1e078c, type: 3}
+  m_Name: tile_floor_withprop_5x5
+  m_EditorClassIdentifier: Assembly-CSharp::TileDefinition
+  prefab: {fileID: 1131964105003378098, guid: 35f4c06502886f14c8f4eecbdb33c91e, type: 3}
+  spawnWeight: 20
+  north: 0
+  east: 0
+  south: 0
+  west: 0
