@@ -3,161 +3,127 @@ using UnityEngine.InputSystem;
 
 namespace Player
 {
+    /// <summary>
+    /// Controls nerves-based audio effects: breathing/heartbeat that scales with nerves level.
+    /// Press 'N' to trigger demo mode (3s ramp up, 2.5s hold, 5s fade out).
+    /// </summary>
     public class NervesAudioController : MonoBehaviour
     {
         [Header("References")]
         [SerializeField] private AudioSource audioSource;
-        [SerializeField] private AudioLowPassFilter lowPassFilter;
 
-        [Header("Audio")]
-        [SerializeField] private AudioClip loopClip;
-        [SerializeField] private bool playOnStart = true;
+        [Header("Audio Clips")]
+        [SerializeField] private AudioClip nervesAudioClip;
+
+        [Header("Audio Settings")]
+        [SerializeField] private float maxVolume = 1f;
+        [SerializeField] private float minPitch = 0.8f;
+        [SerializeField] private float maxPitch = 1.5f;
 
         [Header("Timing")]
+        [SerializeField] private float demoIntensifyDuration = 4f;
+        [SerializeField] private float demoFadeDuration = 5f;
         [SerializeField] private float transitionSpeed = 2f;
+
+        [Header("Debug")]
+        [SerializeField] private bool showDebugInfo = true;
+        [SerializeField] private string debugToggleKeyName = "n";
+        [SerializeField] private bool isDemoActive = false;
 
         [Header("Intensity Curves")]
         [SerializeField] private AnimationCurve intensityCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-        [Header("Volume")]
-        [SerializeField] private float minVolume = 0f;
-        [SerializeField] private float maxVolume = 1f;
-
-        [Header("Onset")]
-        [SerializeField] private bool silenceAtZero = true;
-        [SerializeField] private float startNervesThreshold = 0.5f;
-        [SerializeField] private float startVolume = 0.08f;
-
-        [Header("Pitch")]
-        [SerializeField] private bool affectPitch = true;
-        [SerializeField] private float minPitch = 1f;
-        [SerializeField] private float maxPitch = 1.2f;
-
-        [Header("Low Pass")]
-        [SerializeField] private bool affectLowPass = false;
-        [SerializeField] private float minCutoff = 500f;
-        [SerializeField] private float maxCutoff = 22000f;
-
-        [Header("Debug")]
-        [SerializeField] private bool showDebugInfo = false;
-        [SerializeField] private string debugToggleKeyName = "n";
-        [SerializeField] private bool isDemoActive = false;
-        [SerializeField] private float demoIntensifyDuration = 3f;
-        [SerializeField] private float demoFadeDuration = 5f;
-
         private float _currentNervesLevel = 0f;
-        private float _audioNervesLevel = 0f;
+        private float _visualNervesLevel = 0f;
         private Coroutine _demoCoroutine;
 
         private void Start()
         {
+            // Ensure we have a smooth ease-in-out curve instead of linear
             if (intensityCurve.length == 2 && intensityCurve[0].value == 0 && intensityCurve[1].value == 1)
                 intensityCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
+            // Find or create AudioSource if not assigned
             if (audioSource == null)
                 audioSource = GetComponent<AudioSource>();
 
             if (audioSource == null)
             {
-                Debug.LogError("No AudioSource assigned.");
-                enabled = false;
-                return;
+                audioSource = gameObject.AddComponent<AudioSource>();
+                Debug.LogWarning("No AudioSource assigned, created one automatically.");
             }
 
-            audioSource.loop = true;
+            // Configure AudioSource for looping
+            if (nervesAudioClip != null)
+            {
+                audioSource.clip = nervesAudioClip;
+                audioSource.loop = true;
+                audioSource.playOnAwake = false;
+            }
+            else
+            {
+                Debug.LogWarning("No nervesAudioClip assigned.");
+            }
 
-            if (loopClip != null)
-                audioSource.clip = loopClip;
-
-            ApplyAudio(true);
-
-            if (playOnStart && audioSource.clip != null && !audioSource.isPlaying)
-                audioSource.Play();
-
-            if (playOnStart && audioSource.clip == null)
-                Debug.LogWarning("No loop clip assigned.");
+            // Initialize with clean state (silent)
+            UpdateAudio(true);
         }
 
         private void Update()
         {
             HandleDebugInput();
-
-            if (!isDemoActive)
-                SmoothAudio();
+            // Only smooth transitions when not in demo mode (demo controls _visualNervesLevel directly)
+            if (!isDemoActive) SmoothAudio();
         }
 
+        /// <summary>
+        /// Main API: Sets the nerves level (0-100) for audio effects.
+        /// </summary>
         public void SetNervesLevel(float level)
         {
-            if (isDemoActive) return;
+            if (isDemoActive) return; // Don't interfere with demo sequence
             _currentNervesLevel = Mathf.Clamp(level, 0f, 100f);
-
-            if (!audioSource.isPlaying && audioSource.clip != null)
-                audioSource.Play();
         }
 
         private void SmoothAudio()
         {
-            if (Mathf.Approximately(_audioNervesLevel, _currentNervesLevel)) return;
-
-            _audioNervesLevel = Mathf.MoveTowards(
-                _audioNervesLevel,
-                _currentNervesLevel,
-                transitionSpeed * 100f * Time.deltaTime
-            );
-
-            ApplyAudio();
+            // Smoothly move visual level toward target level using configured speed
+            if (Mathf.Approximately(_visualNervesLevel, _currentNervesLevel)) return;
+            _visualNervesLevel = Mathf.MoveTowards(_visualNervesLevel, _currentNervesLevel, transitionSpeed * 100f * Time.deltaTime);
+            UpdateAudio();
         }
 
-        private void ApplyAudio(bool force = false)
+        private void UpdateAudio(bool force = false)
         {
-            float rawNormalized = _audioNervesLevel / 100f;
-            float targetVolume;
-            float intensity;
+            if (audioSource == null) return;
 
-            if (silenceAtZero && _audioNervesLevel <= 0.0001f)
+            // Convert nerves level (0-100) to normalized (0-1) and apply curve for smooth transitions
+            float rawNormalizedNerves = _visualNervesLevel / 100f;
+            float normalizedNerves = intensityCurve.Evaluate(rawNormalizedNerves);
+
+            // Apply volume scaling
+            audioSource.volume = normalizedNerves * maxVolume;
+
+            // Apply pitch scaling (lerp between min and max pitch)
+            audioSource.pitch = Mathf.Lerp(minPitch, maxPitch, normalizedNerves);
+
+            // Start/stop audio based on whether there's any intensity
+            if (normalizedNerves > 0.001f)
             {
-                targetVolume = 0f;
-                intensity = 0f;
-            }
-            else if (rawNormalized <= (startNervesThreshold / 100f))
-            {
-                targetVolume = 0f;
-                intensity = 0f;
+                if (!audioSource.isPlaying && nervesAudioClip != null)
+                    audioSource.Play();
             }
             else
             {
-                float thresholdNormalized = startNervesThreshold / 100f;
-                float remapped = Mathf.InverseLerp(thresholdNormalized, 1f, rawNormalized);
-                float shaped = intensityCurve.Evaluate(remapped);
-                float minOnVolume = Mathf.Max(minVolume, startVolume);
-                targetVolume = Mathf.Lerp(minOnVolume, maxVolume, shaped);
-                intensity = shaped;
+                if (audioSource.isPlaying)
+                    audioSource.Stop();
             }
 
-            audioSource.volume = targetVolume;
-
-            if (!audioSource.isPlaying && audioSource.clip != null && targetVolume > 0.0001f)
-                audioSource.Play();
-
-            if (audioSource.isPlaying && targetVolume <= 0.0001f)
-                audioSource.Stop();
-
-            if (affectPitch)
-                audioSource.pitch = Mathf.Lerp(minPitch, maxPitch, intensity);
-
-            if (affectLowPass)
+            // Debug logging at extreme states for troubleshooting
+            if (showDebugInfo && (normalizedNerves > 0.99f || normalizedNerves < 0.01f))
             {
-                if (lowPassFilter == null)
-                    lowPassFilter = GetComponent<AudioLowPassFilter>();
-
-                if (lowPassFilter != null)
-                    lowPassFilter.cutoffFrequency = Mathf.Lerp(minCutoff, maxCutoff, intensity);
-            }
-
-            if (showDebugInfo && (intensity > 0.99f || rawNormalized < 0.01f))
-            {
-                string state = rawNormalized < 0.01f ? "IDLE" : "MAX";
-                Debug.Log($"[NervesAudio] {state} | Level: {_audioNervesLevel:F4} | Intensity: {intensity:F3} | Vol: {audioSource.volume:F3} | Pitch: {audioSource.pitch:F3}");
+                string state = normalizedNerves < 0.01f ? "IDLE" : "MAX";
+                Debug.Log($"[NervesAudio] {state} | Level: {_visualNervesLevel:F4} | Vol: {audioSource.volume:F2} | Pitch: {audioSource.pitch:F2}");
             }
         }
 
@@ -175,8 +141,7 @@ namespace Player
         private void StartDemo()
         {
             isDemoActive = true;
-            if (showDebugInfo) Debug.Log("Demo: STARTED");
-
+            if (showDebugInfo) Debug.Log("Audio Demo: STARTED");
             if (_demoCoroutine != null) StopCoroutine(_demoCoroutine);
             _demoCoroutine = StartCoroutine(DemoSequence());
         }
@@ -184,37 +149,39 @@ namespace Player
         private void StopDemo()
         {
             isDemoActive = false;
-            if (showDebugInfo) Debug.Log("Demo: STOPPED");
-
+            if (showDebugInfo) Debug.Log("Audio Demo: STOPPED");
             if (_demoCoroutine != null)
             {
                 StopCoroutine(_demoCoroutine);
                 _demoCoroutine = null;
             }
-
             _currentNervesLevel = 0f;
         }
 
         private System.Collections.IEnumerator DemoSequence()
         {
+            // PHASE 1: Ramp up to max intensity with ease-in curve
             float elapsed = 0f;
-            float startLevel = _audioNervesLevel;
+            float startLevel = _visualNervesLevel;
 
             while (elapsed < demoIntensifyDuration)
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / demoIntensifyDuration;
-                float smoothT = t * t;
-                _audioNervesLevel = Mathf.Lerp(startLevel, 100f, smoothT);
-                ApplyAudio();
+                float smoothT = t * t; // Ease-in for gradual start
+                _visualNervesLevel = Mathf.Lerp(startLevel, 100f, smoothT);
+                UpdateAudio();
                 yield return null;
             }
 
-            _audioNervesLevel = 100f;
-            ApplyAudio();
+            // Ensure we hit exactly 100% before holding
+            _visualNervesLevel = 100f;
+            UpdateAudio();
 
+            // PHASE 2: Hold at peak intensity for dramatic effect
             yield return new WaitForSeconds(2.5f);
 
+            // PHASE 3: Fade out with ease-out curve for smooth return to normal
             elapsed = 0f;
             startLevel = 100f;
 
@@ -222,36 +189,32 @@ namespace Player
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / demoFadeDuration;
-                float smoothT = 1f - (1f - t) * (1f - t);
-                _audioNervesLevel = Mathf.Lerp(startLevel, 0f, smoothT);
-                ApplyAudio();
+                float smoothT = 1f - (1f - t) * (1f - t); // Ease-out for gentle finish
+                _visualNervesLevel = Mathf.Lerp(startLevel, 0f, smoothT);
+                UpdateAudio();
                 yield return null;
             }
 
-            _audioNervesLevel = 0f;
-            ApplyAudio();
+            // Ensure we hit exactly 0% and clean up
+            _visualNervesLevel = 0f;
+            UpdateAudio();
 
             isDemoActive = false;
             _demoCoroutine = null;
-            if (showDebugInfo) Debug.Log("Demo: COMPLETED");
+            if (showDebugInfo) Debug.Log("Audio Demo: COMPLETED");
         }
 
-        public void SetLoopClip(AudioClip clip, bool restartIfPlaying = true)
+        private void OnGUI()
         {
-            loopClip = clip;
-
-            if (audioSource == null)
-                audioSource = GetComponent<AudioSource>();
-
-            if (audioSource == null) return;
-
-            audioSource.clip = loopClip;
-
-            if (restartIfPlaying && audioSource.isPlaying)
+            if (showDebugInfo)
             {
-                audioSource.Stop();
-                if (audioSource.clip != null)
-                    audioSource.Play();
+                GUILayout.BeginArea(new Rect(10, 200, 350, 100));
+                GUILayout.Label($"[Audio] Nerves: {_currentNervesLevel:F1}");
+                GUILayout.Label($"[Audio] Visual: {_visualNervesLevel:F1}");
+                GUILayout.Label($"[Audio] Volume: {(audioSource != null ? audioSource.volume : 0f):F2}");
+                GUILayout.Label($"[Audio] Pitch: {(audioSource != null ? audioSource.pitch : 0f):F2}");
+                GUILayout.Label($"[Audio] Demo (Press '{debugToggleKeyName}'): {(isDemoActive ? "ACTIVE" : "OFF")}");
+                GUILayout.EndArea();
             }
         }
     }
