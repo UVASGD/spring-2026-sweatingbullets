@@ -6,13 +6,15 @@ using UnityEngine.InputSystem;
 namespace Player
 {
     /// <summary>
-    /// Controls nerves-based visual effects: vignette, color tint, desaturation, chromatic aberration, and lens distortion.
+    /// Controls nerves-based visual effects: vignette, color tint, desaturation, chromatic aberration, lens distortion, and camera shake.
     /// Press 'N' to trigger demo mode (3s ramp up, 2.5s hold, 5s fade out).
     /// </summary>
     public class NervesVisualEffectsController : MonoBehaviour
     {
         [Header("References")]
         [SerializeField] private Volume postProcessVolume;
+        [SerializeField] private Transform cameraTransform;
+        [SerializeField] private Transform gunModelTransform;
 
         [Header("Effect Intensities")]
         [SerializeField] private float maxVignetteIntensity = 0.95f;
@@ -20,6 +22,9 @@ namespace Player
         [SerializeField] private Color maxNervesTint = new Color(1f, 0.5f, 0.5f, 1f);
         [SerializeField] private float maxChromaticAberration = 0.5f;
         [SerializeField] private float maxLensDistortion = -0.2f;
+        [SerializeField] private float maxCameraShakeIntensity = 0.15f;
+        [SerializeField] private float maxGunShakeIntensity = 0.15f;
+        [SerializeField] private float cameraShakeFrequency = 25f;
 
         [Header("Timing")]
         [SerializeField] private float demoIntensifyDuration = 3f;
@@ -41,6 +46,9 @@ namespace Player
         private float _currentNervesLevel = 0f;
         private float _visualNervesLevel = 0f;
         private Coroutine _demoCoroutine;
+        private Vector3 _originalCameraPosition;
+        private Vector3 _originalGunPosition;
+        private float _shakeTime = 0f;
 
         private void Start()
         {
@@ -51,6 +59,23 @@ namespace Player
             // Find the Volume component (fallback to search if not assigned)
             if (postProcessVolume == null)
                 postProcessVolume = GetComponent<Volume>() ?? FindFirstObjectByType<Volume>();
+
+            // Find the camera transform (fallback to main camera if not assigned)
+            if (cameraTransform == null)
+            {
+                Camera mainCam = Camera.main;
+                if (mainCam != null)
+                    cameraTransform = mainCam.transform;
+                else
+                    Debug.LogWarning("No camera assigned and Camera.main not found.");
+            }
+
+            // Store original camera position for shake calculations
+            if (cameraTransform != null)
+                _originalCameraPosition = cameraTransform.localPosition;
+
+            if (gunModelTransform != null)
+                _originalGunPosition = gunModelTransform.localPosition;
 
             // Get all required post-processing overrides from the volume profile
             if (postProcessVolume != null)
@@ -81,6 +106,7 @@ namespace Player
             HandleDebugInput();
             // Only smooth transitions when not in demo mode (demo controls _visualNervesLevel directly)
             if (!isDemoActive) SmoothVisuals();
+            ApplyCameraShake();
         }
 
         /// <summary>
@@ -149,6 +175,63 @@ namespace Player
             {
                 string state = normalizedNerves < 0.01f ? "IDLE" : "MAX";
                 Debug.Log($"[Nerves] {state} | Level: {_visualNervesLevel:F4} | Vig: {_vignette.intensity.value:F2}");
+            }
+        }
+
+        private void ApplyCameraShake()
+        {
+            float normalizedNerves = _visualNervesLevel / 100f;
+            float intensityMultiplier = intensityCurve.Evaluate(normalizedNerves);
+            
+            // Increment time once for both shakes
+            if (intensityMultiplier * Mathf.Max(maxCameraShakeIntensity, maxGunShakeIntensity) > 0.001f)
+            {
+                _shakeTime += Time.deltaTime * cameraShakeFrequency;
+            }
+            else
+            {
+                _shakeTime = 0f;
+            }
+
+            // 1. Camera Shake
+            if (cameraTransform != null)
+            {
+                float camShakeIntensity = intensityMultiplier * maxCameraShakeIntensity;
+
+                if (camShakeIntensity > 0.001f)
+                {
+                    // Use Perlin noise for smooth, organic camera shake
+                    float shakeX = (Mathf.PerlinNoise(_shakeTime, 0f) - 0.5f) * 2f * camShakeIntensity;
+                    float shakeY = (Mathf.PerlinNoise(0f, _shakeTime) - 0.5f) * 2f * camShakeIntensity;
+                    float shakeZ = (Mathf.PerlinNoise(_shakeTime, _shakeTime) - 0.5f) * 2f * camShakeIntensity * 0.5f; // Less Z shake
+
+                    cameraTransform.localPosition = _originalCameraPosition + new Vector3(shakeX, shakeY, shakeZ);
+                }
+                else
+                {
+                    cameraTransform.localPosition = _originalCameraPosition;
+                }
+            }
+
+            // 2. Gun Shake
+            if (gunModelTransform != null)
+            {
+                float gunShakeIntensity = intensityMultiplier * maxGunShakeIntensity;
+
+                if (gunShakeIntensity > 0.001f)
+                {
+                    // Use slightly offset Perlin noise so gun doesn't move exactly with camera
+                    float offset = 100f; 
+                    float shakeX = (Mathf.PerlinNoise(_shakeTime + offset, 0f) - 0.5f) * 2f * gunShakeIntensity;
+                    float shakeY = (Mathf.PerlinNoise(0f, _shakeTime + offset) - 0.5f) * 2f * gunShakeIntensity;
+                    float shakeZ = (Mathf.PerlinNoise(_shakeTime + offset, _shakeTime + offset) - 0.5f) * 2f * gunShakeIntensity * 0.5f;
+
+                    gunModelTransform.localPosition = _originalGunPosition + new Vector3(shakeX, shakeY, shakeZ);
+                }
+                else
+                {
+                    gunModelTransform.localPosition = _originalGunPosition;
+                }
             }
         }
 
@@ -240,6 +323,7 @@ namespace Player
                 GUILayout.Label($"Saturation: {(_colorAdjustments != null ? _colorAdjustments.saturation.value : 0f):F1}");
                 GUILayout.Label($"Aberration: {(_chromaticAberration != null ? _chromaticAberration.intensity.value : 0f):F2}");
                 GUILayout.Label($"Distortion: {(_lensDistortion != null ? _lensDistortion.intensity.value : 0f):F2}");
+                GUILayout.Label($"Cam Shake: {((_visualNervesLevel / 100f) * maxCameraShakeIntensity):F3}");
                 GUILayout.Label($"Demo (Press '{debugToggleKeyName}'): {(isDemoActive ? "ACTIVE" : "OFF")}");
                 GUILayout.EndArea();
             }
