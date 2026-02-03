@@ -388,6 +388,11 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!4 &694952050 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7821414477966033594, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+  m_PrefabInstance: {fileID: 5851341813854994995}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &745122718
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -686,6 +691,11 @@ MonoBehaviour:
   blendDistance: 0
   weight: 1
   sharedProfile: {fileID: 11400000, guid: ab09877e2e707104187f6f83e2f62510, type: 2}
+--- !u!4 &1561364925 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6316446067052004383, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+  m_PrefabInstance: {fileID: 5851341813854994995}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2016020058
 GameObject:
   m_ObjectHideFlags: 0
@@ -829,11 +839,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.NervesVisualEffectsController
   postProcessVolume: {fileID: 1561364921}
+  cameraTransform: {fileID: 1561364925}
+  gunModelTransform: {fileID: 694952050}
   maxVignetteIntensity: 0.95
   maxDesaturation: -50
-  maxNervesTint: {r: 1, g: 0.5, b: 0.5, a: 1}
+  maxNervesTint: {r: 0.5377358, g: 0.5377358, b: 0.5377358, a: 1}
   maxChromaticAberration: 0.75
   maxLensDistortion: -0.5
+  maxCameraShakeIntensity: 0.125
+  maxGunShakeIntensity: 0.2
+  cameraShakeFrequency: 25
   demoIntensifyDuration: 4
   demoFadeDuration: 5
   transitionSpeed: 2
