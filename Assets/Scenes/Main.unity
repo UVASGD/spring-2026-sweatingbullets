@@ -775,6 +775,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2540897844497172266, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: m_Volume
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2540897844497172266, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: m_Resource
+      value: 
+      objectReference: {fileID: 8300000, guid: de2d6a6448e63401b82dcbdf1b3896ff, type: 3}
+    - target: {fileID: 2540897844497172266, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: m_PlayOnAwake
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4107762182159228181, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       propertyPath: fireAction
       value: 
@@ -805,6 +817,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6817638360683979281}
+    - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6817638360683979289}
     - targetCorrespondingSourceObject: {fileID: 7153238028321174612, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1561364921}
@@ -879,6 +894,70 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!82 &6817638360683979284 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 2540897844497172266, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+  m_PrefabInstance: {fileID: 5851341813854994995}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6817638360683979289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6817638360683979277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21eb3b50a2da141b79228bf49f944409, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Player.NervesAudioController
+  audioSource: {fileID: 6817638360683979284}
+  lowPassFilter: {fileID: 0}
+  loopClip: {fileID: 8300000, guid: de2d6a6448e63401b82dcbdf1b3896ff, type: 3}
+  playOnStart: 0
+  transitionSpeed: 8
+  intensityCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  minVolume: 0.1
+  maxVolume: 1
+  silenceAtZero: 1
+  startNervesThreshold: 0.01
+  startVolume: 0.08
+  affectPitch: 1
+  minPitch: 0.6
+  maxPitch: 2.5
+  affectLowPass: 0
+  minCutoff: 500
+  maxCutoff: 22000
+  showDebugInfo: 0
+  debugToggleKeyName: n
+  isDemoActive: 0
+  demoIntensifyDuration: 3
+  demoPauseAtLevel: 0
+  demoPauseDuration: 0
+  demoFadeDuration: 5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
