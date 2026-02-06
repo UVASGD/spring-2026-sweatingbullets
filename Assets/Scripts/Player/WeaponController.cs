@@ -166,6 +166,13 @@ namespace Player
                 {
                     enemy.Hit(hit.point, playerCamera.transform.forward);
                 }
+                else{
+                    //Check if an environmental object is hit
+                    IEnvironmentalObject environmentalObject = hit.transform.GetComponentInChildren<IEnvironmentalObject>();
+                    if (environmentalObject != null){
+                        environmentalObject.HitByPlayer();
+                    }
+                }
             }
 
             print("fired");
