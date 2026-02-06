@@ -30,6 +30,10 @@ namespace Player
         private bool _isAiming = false;
         private float _hipToAimZOffset;
 
+        public bool IsAiming => _isAiming;
+
+        public event Action OnWeaponFired;
+
         private GameObject
             _regularSmokeSpawnPoint; // I have this instead of a separate gameobject so that smoke spawn will always be dependent on the aim position and hip fire position
 
@@ -98,9 +102,8 @@ namespace Player
             if (aimDownSightsAction != null)
             {
                 aimDownSightsAction.action.Enable();
-                aimDownSightsAction.action.performed +=
-                    ctx => _isAiming = true; // lambda function called ctx that sets the bool isAiming
-                aimDownSightsAction.action.canceled += ctx => _isAiming = false;
+                aimDownSightsAction.action.performed += OnAimPerformed;
+                aimDownSightsAction.action.canceled += OnAimCanceled;
             }
         }
 
@@ -120,8 +123,20 @@ namespace Player
 
             if (aimDownSightsAction != null)
             {
+                aimDownSightsAction.action.performed -= OnAimPerformed;
+                aimDownSightsAction.action.canceled -= OnAimCanceled;
                 aimDownSightsAction.action.Disable();
             }
+        }
+
+        private void OnAimPerformed(InputAction.CallbackContext context)
+        {
+            _isAiming = true;
+        }
+
+        private void OnAimCanceled(InputAction.CallbackContext context)
+        {
+            _isAiming = false;
         }
 
         private void FireWeapon(InputAction.CallbackContext context)
@@ -169,6 +184,7 @@ namespace Player
             }
 
             print("fired");
+            OnWeaponFired?.Invoke();
             _isHammerCocked = false;
             canFireWeapon = false;
             gunAnimator.SetBool(HammerPullBool, _isHammerCocked);

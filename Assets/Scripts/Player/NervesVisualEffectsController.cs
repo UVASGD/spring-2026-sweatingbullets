@@ -16,6 +16,8 @@ namespace Player
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private Transform gunModelTransform;
 
+        [SerializeField] private NervesManager nervesManager;
+
         [Header("Effect Intensities")]
         [SerializeField] private float maxVignetteIntensity = 0.95f;
         [SerializeField] private float maxDesaturation = -50f;
@@ -55,6 +57,16 @@ namespace Player
             // Ensure we have a smooth ease-in-out curve instead of linear
             if (intensityCurve.length == 2 && intensityCurve[0].value == 0 && intensityCurve[1].value == 1)
                 intensityCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+            if (nervesManager != null)
+            {
+                isDemoActive = false;
+                if (_demoCoroutine != null)
+                {
+                    StopCoroutine(_demoCoroutine);
+                    _demoCoroutine = null;
+                }
+            }
 
             // Find the Volume component (fallback to search if not assigned)
             if (postProcessVolume == null)
@@ -237,6 +249,7 @@ namespace Player
 
         private void HandleDebugInput()
         {
+            if (nervesManager != null) return;
             if (Keyboard.current == null) return;
             var key = Keyboard.current[debugToggleKeyName] as UnityEngine.InputSystem.Controls.KeyControl;
             if (key != null && key.wasPressedThisFrame)
