@@ -19,7 +19,7 @@ public class titleCamera : MonoBehaviour
     // Update is called once per frame
     void Update()
     {  
-        transform.position = Vector3.MoveTowards(transform.position, endPos, camSpeed);
+        transform.position = Vector3.MoveTowards(transform.position, endPos, (endPos - transform.position).z * camSpeed * Time.deltaTime);
         Debug.Log(transform.position);
     }
 }

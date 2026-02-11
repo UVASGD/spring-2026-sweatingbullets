@@ -607,6 +607,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e41cff0137ec74af38c5339dd3ad6708, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::titleCamera
+  endPos: {x: 284, y: 284, z: 77.2}
+  startPos: {x: 284, y: 284, z: -200}
+  camSpeed: 3
 --- !u!1 &1651782745
 GameObject:
   m_ObjectHideFlags: 0
