@@ -407,6 +407,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_ActionId: 6c2ab1b8-8984-453a-af3d-a3c78ae1679a
+--- !u!114 &781492504 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4107762182159228181, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+  m_PrefabInstance: {fileID: 5851341813854994995}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76f92053b6f564448b7f92a1a10bcb04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponController
 --- !u!1 &794702986
 GameObject:
   m_ObjectHideFlags: 0
@@ -820,6 +831,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6817638360683979289}
+    - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6817638360683979296}
+    - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6817638360683979297}
     - targetCorrespondingSourceObject: {fileID: 7153238028321174612, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1561364921}
@@ -856,6 +873,7 @@ MonoBehaviour:
   postProcessVolume: {fileID: 1561364921}
   cameraTransform: {fileID: 1561364925}
   gunModelTransform: {fileID: 694952050}
+  nervesManager: {fileID: 0}
   maxVignetteIntensity: 0.95
   maxDesaturation: -50
   maxNervesTint: {r: 0.5377358, g: 0.5377358, b: 0.5377358, a: 1}
@@ -912,10 +930,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.NervesAudioController
   audioSource: {fileID: 6817638360683979284}
-  lowPassFilter: {fileID: 0}
-  loopClip: {fileID: 8300000, guid: de2d6a6448e63401b82dcbdf1b3896ff, type: 3}
-  playOnStart: 0
+  nervesManager: {fileID: 0}
+  nervesAudioClip: {fileID: 0}
+  maxVolume: 1
+  minPitch: 0.6
+  maxPitch: 2.5
+  demoIntensifyDuration: 3
+  demoFadeDuration: 5
   transitionSpeed: 8
+  showDebugInfo: 0
+  debugToggleKeyName: n
+  isDemoActive: 0
   intensityCurve:
     serializedVersion: 2
     m_Curve:
@@ -940,24 +965,40 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  minVolume: 0.1
-  maxVolume: 1
-  silenceAtZero: 1
-  startNervesThreshold: 0.01
-  startVolume: 0.08
-  affectPitch: 1
-  minPitch: 0.6
-  maxPitch: 2.5
-  affectLowPass: 0
-  minCutoff: 500
-  maxCutoff: 22000
-  showDebugInfo: 0
-  debugToggleKeyName: n
-  isDemoActive: 0
-  demoIntensifyDuration: 3
-  demoPauseAtLevel: 0
-  demoPauseDuration: 0
-  demoFadeDuration: 5
+--- !u!114 &6817638360683979296
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6817638360683979277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7af540072506d46bc9ff7a726baebaeb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Player.NervesManager
+  visualController: {fileID: 6817638360683979281}
+  audioController: {fileID: 6817638360683979289}
+  currentNerves: 0
+  totalInputsDelta: 0
+  recoveryDelta: 0
+  showDebugInfo: 1
+--- !u!114 &6817638360683979297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6817638360683979277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82210e598a5a1449e8d06cb23a6a4a1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Player.ADSNervesInput
+  maxContribution: 30
+  delayBeforeIncrease: 3
+  increaseRate: 5
+  weaponController: {fileID: 781492504}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
