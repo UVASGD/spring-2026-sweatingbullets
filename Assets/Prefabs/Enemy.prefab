@@ -167,6 +167,12 @@ MonoBehaviour:
   weaponRange: 5
   detectionDistance: 100
   viewAngle: 120
+  viewOffsets:
+  - {x: 0, y: 0.4, z: 0}
+  - {x: -0.4, y: 0, z: 0}
+  - {x: 0.4, y: 0, z: 0}
+  - {x: 0, y: 0, z: -0.4}
+  - {x: 0, y: 0, z: 0.4}
   isDead: 0
 --- !u!195 &1668853778700397327
 NavMeshAgent:

@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
 using UnityHFSM;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Enemy
 {
@@ -29,6 +31,7 @@ namespace Enemy
         [Header("Detection")]
         [SerializeField] private float detectionDistance = 100f;
         [SerializeField, Range(0, 360)] private float viewAngle = 120f;
+        [SerializeField] private List<Vector3> viewOffsets;
 
         public bool isDead;
         
@@ -161,6 +164,19 @@ namespace Enemy
             // Additional death logic (e.g., play animation, drop loot) could go here
         }
 
+
+        private bool CheckDir(Vector3 position, Vector3 dir, float distance)
+        {
+            if (Physics.Raycast(position, dir.normalized, out RaycastHit hit, distance))
+            {
+                Debug.DrawLine(position, hit.point, Color.green);
+                //print(hit.collider.gameObject.name);
+                return (hit.collider.gameObject == player);
+            }
+            Debug.DrawLine(position, dir.normalized * distance, Color.green);
+            return false;
+        }
+
         private bool CanSeePlayer()
         {
             if (player == null) return false;
@@ -181,17 +197,29 @@ namespace Enemy
                 return false;
             }
 
-            if (Physics.Raycast(eyes.transform.position, direction.normalized, out RaycastHit hit, distance))
+        
+            
+            if (CheckDir(eyes.transform.position, direction, distance))
             {
-                //print(hit.collider.gameObject.name);
-                if (hit.collider.gameObject != player)
-                {
-                    return false;
-                }
+                return true;
             }
 
-            return true;
+            direction.y = 0;
+            if (CheckDir(eyes.transform.position, direction, distance))
+            {
+                return true;
+            }
+
+            foreach (Vector3 offset in viewOffsets)
+            {
+                if (CheckDir(eyes.transform.position + offset, direction, distance))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
+
 
         private bool PlayerInRange()
         {
