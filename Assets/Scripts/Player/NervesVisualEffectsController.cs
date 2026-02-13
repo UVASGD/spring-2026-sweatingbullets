@@ -50,6 +50,7 @@ namespace Player
         private Coroutine _demoCoroutine;
         private Vector3 _originalCameraPosition;
         private Vector3 _originalGunPosition;
+        private Vector3 _gunShakeOffset;
         private float _shakeTime = 0f;
 
         private void Start()
@@ -225,10 +226,13 @@ namespace Player
                 }
             }
 
-            // 2. Gun Shake
+            // 2. Gun Shake (applied as additive offset so it doesn't override WeaponController ADS movement)
             if (gunModelTransform != null)
             {
                 float gunShakeIntensity = intensityMultiplier * maxGunShakeIntensity;
+
+                // Remove previous shake offset
+                gunModelTransform.localPosition -= _gunShakeOffset;
 
                 if (gunShakeIntensity > 0.001f)
                 {
@@ -238,12 +242,15 @@ namespace Player
                     float shakeY = (Mathf.PerlinNoise(0f, _shakeTime + offset) - 0.5f) * 2f * gunShakeIntensity;
                     float shakeZ = (Mathf.PerlinNoise(_shakeTime + offset, _shakeTime + offset) - 0.5f) * 2f * gunShakeIntensity * 0.5f;
 
-                    gunModelTransform.localPosition = _originalGunPosition + new Vector3(shakeX, shakeY, shakeZ);
+                    _gunShakeOffset = new Vector3(shakeX, shakeY, shakeZ);
                 }
                 else
                 {
-                    gunModelTransform.localPosition = _originalGunPosition;
+                    _gunShakeOffset = Vector3.zero;
                 }
+
+                // Apply new shake offset on top of current position
+                gunModelTransform.localPosition += _gunShakeOffset;
             }
         }
 

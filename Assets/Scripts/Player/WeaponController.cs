@@ -66,9 +66,9 @@ namespace Player
         private void Update()
         {
             // aiming button held
-            if (_isAiming && transform.position != aimPosition.position)
+            if (_isAiming && transform.localPosition != aimPosition.localPosition)
             {
-                transform.position = Vector3.MoveTowards(transform.position, aimPosition.position,
+                transform.localPosition = Vector3.MoveTowards(transform.localPosition, aimPosition.localPosition,
                     aimSpeed * Time.deltaTime);
                 // why is localposition used here and regular position is used in the next if statement? Don't ask me. Because it works that way. lol
                 smokeSpawnPoint.localPosition = Vector3.MoveTowards(smokeSpawnPoint.localPosition,
@@ -76,12 +76,12 @@ namespace Player
             }
 
             // aiming button let go
-            if (!_isAiming && transform.position != HipFirePosition.position)
+            if (!_isAiming && transform.localPosition != HipFirePosition.localPosition)
             {
-                transform.position = Vector3.MoveTowards(transform.position, HipFirePosition.position,
+                transform.localPosition = Vector3.MoveTowards(transform.localPosition, HipFirePosition.localPosition,
                     aimSpeed * Time.deltaTime);
-                smokeSpawnPoint.position = Vector3.MoveTowards(smokeSpawnPoint.position,
-                    _regularSmokeSpawnPoint.transform.position, aimSpeed * Time.deltaTime);
+                smokeSpawnPoint.localPosition = Vector3.MoveTowards(smokeSpawnPoint.localPosition,
+                    _regularSmokeSpawnPoint.transform.localPosition, aimSpeed * Time.deltaTime);
             }
         }
 
@@ -102,8 +102,14 @@ namespace Player
             if (aimDownSightsAction != null)
             {
                 aimDownSightsAction.action.Enable();
-                aimDownSightsAction.action.performed += OnAimPerformed;
-                aimDownSightsAction.action.canceled += OnAimCanceled;
+                aimDownSightsAction.action.performed +=
+                    ctx => { _isAiming = true; Debug.Log("WeaponController: ADS performed, _isAiming = true"); };
+                aimDownSightsAction.action.canceled +=
+                    ctx => { _isAiming = false; Debug.Log("WeaponController: ADS canceled, _isAiming = false"); };
+            }
+            else
+            {
+                Debug.LogWarning("WeaponController: aimDownSightsAction is null!");
             }
         }
 
@@ -123,21 +129,11 @@ namespace Player
 
             if (aimDownSightsAction != null)
             {
-                aimDownSightsAction.action.performed -= OnAimPerformed;
-                aimDownSightsAction.action.canceled -= OnAimCanceled;
                 aimDownSightsAction.action.Disable();
             }
         }
 
-        private void OnAimPerformed(InputAction.CallbackContext context)
-        {
-            _isAiming = true;
-        }
 
-        private void OnAimCanceled(InputAction.CallbackContext context)
-        {
-            _isAiming = false;
-        }
 
         private void FireWeapon(InputAction.CallbackContext context)
         {
@@ -173,7 +169,7 @@ namespace Player
 
             if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out hit, range))
             {
-                Debug.Log("Hit: " + hit.transform.name);
+                // Debug.Log("Hit: " + hit.transform.name);
 
                 // Check if the object we hit has the EnemyHealth script
                 EnemyAI enemy = hit.transform.GetComponent<EnemyAI>();

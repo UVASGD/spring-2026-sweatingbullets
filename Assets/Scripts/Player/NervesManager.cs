@@ -1,38 +1,31 @@
-using SUPERCharacter;
 using UnityEngine;
 
 namespace Player
 {
+    /// <summary>
+    /// Central orchestrator for the nerves system. Discovers all NervesInput sources
+    /// and the NervesRecovery component, evaluates them each frame, and pushes the
+    /// resulting nerves level to the visual and audio controllers.
+    /// </summary>
     public class NervesManager : MonoBehaviour
     {
-        [Header("ADS Nerves")]
-        [SerializeField] private float adsDelayBeforeIncrease = 3f;
-        [SerializeField] private float adsIncreaseRate = 5f;
-        [SerializeField] private float adsMaxContribution = 30f;
-
-        [Header("Recovery")]
-        [SerializeField] private float standingStillDecreaseRate = 10f;
-        [SerializeField] private float crouchingDecreaseRate = 15f;
-
         [Header("References")]
-        [SerializeField] private WeaponController weaponController;
-        [SerializeField] private SUPERCharacterAIO characterController;
         [SerializeField] private NervesVisualEffectsController visualController;
         [SerializeField] private NervesAudioController audioController;
 
-        [Header("Debug")]
+        [Header("Debug (Read Only)")]
         [SerializeField] private float currentNerves;
-        [SerializeField] private float adsAccumulatedNerves;
+        [SerializeField] private float totalInputsDelta;
+        [SerializeField] private float recoveryDelta;
+        [SerializeField] private bool showDebugInfo = true;
 
-        private float _adsTimer;
+        private NervesInput[] _inputs;
+        private NervesRecovery _recovery;
 
         private void Awake()
         {
-            if (weaponController == null)
-                weaponController = GetComponentInChildren<WeaponController>();
-
-            if (characterController == null)
-                characterController = GetComponentInParent<SUPERCharacterAIO>();
+            _inputs = GetComponentsInChildren<NervesInput>();
+            _recovery = GetComponentInChildren<NervesRecovery>();
 
             if (visualController == null)
                 visualController = GetComponentInChildren<NervesVisualEffectsController>();
@@ -41,53 +34,67 @@ namespace Player
                 audioController = GetComponentInChildren<NervesAudioController>();
         }
 
-        private void OnEnable()
-        {
-            if (weaponController != null)
-                weaponController.OnWeaponFired += HandleWeaponFired;
-        }
-
-        private void OnDisable()
-        {
-            if (weaponController != null)
-                weaponController.OnWeaponFired -= HandleWeaponFired;
-        }
-
         private void Update()
         {
-            bool isAiming = weaponController != null && weaponController.IsAiming;
+            ProcessInputs();
+            ProcessRecovery();
+            PushNervesToControllers();
+        }
 
-            if (isAiming)
+        private void ProcessInputs()
+        {
+            totalInputsDelta = 0f;
+            for (int i = 0; i < _inputs.Length; i++)
             {
-                _adsTimer += Time.deltaTime;
-
-                if (_adsTimer >= adsDelayBeforeIncrease)
+                float delta = _inputs[i].Evaluate();
+                if (delta > 0f)
                 {
-                    float delta = adsIncreaseRate * Time.deltaTime;
-                    float remaining = Mathf.Max(0f, adsMaxContribution - adsAccumulatedNerves);
-
-                    if (remaining > 0f)
-                    {
-                        float applied = Mathf.Min(delta, remaining);
-                        adsAccumulatedNerves += applied;
-                        IncreaseNerves(applied);
-                    }
+                    totalInputsDelta += delta;
+                    currentNerves = Mathf.Clamp(currentNerves + delta, 0f, 100f);
                 }
             }
-            else
+        }
+
+        private void ProcessRecovery()
+        {
+            if (_recovery == null)
             {
-                _adsTimer = 0f;
-
-                bool isCrouching = characterController != null && characterController.isCrouching;
-                bool isStandingStill = characterController != null && characterController.isIdle;
-
-                if (isCrouching || isStandingStill)
-                {
-                    float rate = isCrouching ? crouchingDecreaseRate : standingStillDecreaseRate;
-                    DecreaseNerves(rate * Time.deltaTime);
-                }
+                recoveryDelta = 0f;
+                return;
             }
 
+            float decrease = _recovery.Evaluate();
+            recoveryDelta = decrease;
+
+            if (decrease <= 0f)
+                return;
+
+            float before = currentNerves;
+            currentNerves = Mathf.Clamp(currentNerves - decrease, 0f, 100f);
+
+            float actualDecrease = before - currentNerves;
+            if (actualDecrease > 0f)
+                DistributeAccumulationReduction(actualDecrease);
+        }
+
+        private void DistributeAccumulationReduction(float totalDecrease)
+        {
+            float totalAccumulated = 0f;
+            for (int i = 0; i < _inputs.Length; i++)
+                totalAccumulated += _inputs[i].AccumulatedNerves;
+
+            if (totalAccumulated <= 0f)
+                return;
+
+            for (int i = 0; i < _inputs.Length; i++)
+            {
+                float proportion = _inputs[i].AccumulatedNerves / totalAccumulated;
+                _inputs[i].ReduceAccumulation(totalDecrease * proportion);
+            }
+        }
+
+        private void PushNervesToControllers()
+        {
             if (visualController != null)
                 visualController.SetNervesLevel(currentNerves);
 
@@ -95,24 +102,40 @@ namespace Player
                 audioController.SetNervesLevel(currentNerves);
         }
 
-        private void HandleWeaponFired()
+        private void OnGUI()
         {
-            if (weaponController != null && weaponController.IsAiming)
-                _adsTimer = 0f;
-        }
+            if (!showDebugInfo)
+                return;
 
-        private void IncreaseNerves(float amount)
-        {
-            currentNerves = Mathf.Clamp(currentNerves + amount, 0f, 100f);
-        }
+            GUILayout.BeginArea(new Rect(Screen.width - 310, 10, 300, 200));
+            GUILayout.Label("Nerves System Debug", new GUIStyle(GUI.skin.label) { fontSize = 16, fontStyle = FontStyle.Bold });
+            GUILayout.Space(10);
 
-        private void DecreaseNerves(float amount)
-        {
-            float before = currentNerves;
-            currentNerves = Mathf.Clamp(currentNerves - amount, 0f, 100f);
+            GUILayout.Label($"Current Nerves: {currentNerves:F1}");
+            GUILayout.Label($"Inputs Delta: {totalInputsDelta:F2}");
+            GUILayout.Label($"Recovery Delta: {recoveryDelta:F2}");
+            GUILayout.Space(5);
 
-            float actualDecrease = before - currentNerves;
-            adsAccumulatedNerves = Mathf.Max(0f, adsAccumulatedNerves - actualDecrease);
+            GUILayout.Label("Inputs:");
+            for (int i = 0; i < _inputs.Length; i++)
+            {
+                var input = _inputs[i];
+                GUILayout.Label($"  {input.GetType().Name}: {input.AccumulatedNerves:F1}/{input.MaxContribution}");
+            }
+
+            if (GUILayout.Button("Reset Nerves"))
+            {
+                currentNerves = 0f;
+                for (int i = 0; i < _inputs.Length; i++)
+                {
+                    // Reset accumulation via reflection since we don't have a public method
+                    var field = typeof(NervesInput).GetField("_accumulatedNerves", 
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    field?.SetValue(_inputs[i], 0f);
+                }
+            }
+
+            GUILayout.EndArea();
         }
     }
 }

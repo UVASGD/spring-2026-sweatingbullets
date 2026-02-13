@@ -38,7 +38,7 @@ namespace Enemy.States
 
             if (!Agent.pathPending && Agent.remainingDistance <= Agent.stoppingDistance)
             {
-                Debug.Log("Waiting for target");
+                // Debug.Log("Waiting for target");
                 _waitTimer += Time.deltaTime;
                 if (_waitTimer > _waitTime)
                 {
