@@ -837,6 +837,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6817638360683979297}
+    - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6817638360683979304}
     - targetCorrespondingSourceObject: {fileID: 7153238028321174612, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1561364921}
@@ -999,6 +1002,34 @@ MonoBehaviour:
   delayBeforeIncrease: 3
   increaseRate: 5
   weaponController: {fileID: 781492504}
+--- !u!114 &6817638360683979300 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1811012090805449005, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+  m_PrefabInstance: {fileID: 5851341813854994995}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6817638360683979277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8acb2371b9f0ce3429e7935fa5efe263, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6817638360683979304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6817638360683979277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d153e3d7c84a1490287f0609c005aadc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Player.NervesRecovery
+  standingStillDecreaseRate: 10
+  crouchingDecreaseRate: 15
+  recoveryDelay: 1.5
+  weaponController: {fileID: 781492504}
+  characterController: {fileID: 6817638360683979300}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

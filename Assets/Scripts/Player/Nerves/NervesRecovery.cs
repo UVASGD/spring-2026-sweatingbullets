@@ -13,17 +13,27 @@ namespace Player
         [SerializeField] private float standingStillDecreaseRate = 10f;
         [SerializeField] private float crouchingDecreaseRate = 15f;
 
+        [Header("Recovery Delay")]
+        [SerializeField] private float recoveryDelay = 1.5f;
+
         [Header("References")]
         [SerializeField] private WeaponController weaponController;
         [SerializeField] private SUPERCharacterAIO characterController;
 
+        private float _recoveryTimer;
+
         private void Awake()
         {
             if (weaponController == null)
-                weaponController = GetComponentInParent<WeaponController>();
+                weaponController = GetComponentInChildren<WeaponController>();
 
             if (characterController == null)
                 characterController = GetComponentInParent<SUPERCharacterAIO>();
+
+            if (weaponController == null)
+                Debug.LogWarning("NervesRecovery: Could not find WeaponController in parent hierarchy — aiming check will be skipped.");
+            if (characterController == null)
+                Debug.LogError("NervesRecovery: Could not find SUPERCharacterAIO in parent hierarchy — recovery will never trigger!");
         }
 
         /// <summary>
@@ -32,18 +42,33 @@ namespace Player
         public float Evaluate()
         {
             if (weaponController != null && weaponController.IsAiming)
+            {
+                _recoveryTimer = 0f;
+                Debug.Log("NervesRecovery!!!!!!!!!!!!!!!!!!!!!!: Blocked — player is aiming.");
                 return 0f;
+            }
+
+            Debug.Log("AJKHBFKJABDFKJSBDF<KSJBDFS<KFJBS<KFJBSKDF");
 
             if (characterController == null)
+                return 0f;
+
+            bool canRecover = characterController.isCrouching || characterController.isIdle;
+
+            if (!canRecover)
+            {
+                _recoveryTimer = 0f;
+                return 0f;
+            }
+
+            _recoveryTimer += Time.deltaTime;
+            if (_recoveryTimer < recoveryDelay)
                 return 0f;
 
             if (characterController.isCrouching)
                 return crouchingDecreaseRate * Time.deltaTime;
 
-            if (characterController.isIdle)
-                return standingStillDecreaseRate * Time.deltaTime;
-
-            return 0f;
+            return standingStillDecreaseRate * Time.deltaTime;
         }
     }
 }

@@ -30,11 +30,13 @@ namespace Player
         public float Evaluate()
         {
             float raw = CalculateNervesDelta();
-
             if (raw <= 0f)
                 return 0f;
 
             float remaining = Mathf.Max(0f, maxContribution - _accumulatedNerves);
+            if (remaining <= 0f)
+                return 0f;
+
             float applied = Mathf.Min(raw, remaining);
             _accumulatedNerves += applied;
             return applied;
@@ -47,6 +49,14 @@ namespace Player
         public void ReduceAccumulation(float amount)
         {
             _accumulatedNerves = Mathf.Max(0f, _accumulatedNerves - amount);
+        }
+
+        /// <summary>
+        /// Clears this input's tracked contribution back to zero.
+        /// </summary>
+        public void ResetAccumulation()
+        {
+            _accumulatedNerves = 0f;
         }
 
         /// <summary>

@@ -9,6 +9,9 @@ namespace Player
     /// </summary>
     public class NervesManager : MonoBehaviour
     {
+        private const float MinNerves = 0f;
+        private const float MaxNerves = 100f;
+
         [Header("References")]
         [SerializeField] private NervesVisualEffectsController visualController;
         [SerializeField] private NervesAudioController audioController;
@@ -32,6 +35,9 @@ namespace Player
 
             if (audioController == null)
                 audioController = GetComponentInChildren<NervesAudioController>();
+
+            if (_recovery == null)
+                Debug.LogError("NervesManager: Could not find NervesRecovery in children — recovery will never run!");
         }
 
         private void Update()
@@ -44,14 +50,15 @@ namespace Player
         private void ProcessInputs()
         {
             totalInputsDelta = 0f;
+
             for (int i = 0; i < _inputs.Length; i++)
             {
                 float delta = _inputs[i].Evaluate();
-                if (delta > 0f)
-                {
-                    totalInputsDelta += delta;
-                    currentNerves = Mathf.Clamp(currentNerves + delta, 0f, 100f);
-                }
+                if (delta <= 0f)
+                    continue;
+
+                totalInputsDelta += delta;
+                AddNerves(delta);
             }
         }
 
@@ -69,10 +76,7 @@ namespace Player
             if (decrease <= 0f)
                 return;
 
-            float before = currentNerves;
-            currentNerves = Mathf.Clamp(currentNerves - decrease, 0f, 100f);
-
-            float actualDecrease = before - currentNerves;
+            float actualDecrease = RemoveNerves(decrease);
             if (actualDecrease > 0f)
                 DistributeAccumulationReduction(actualDecrease);
         }
@@ -91,6 +95,28 @@ namespace Player
                 float proportion = _inputs[i].AccumulatedNerves / totalAccumulated;
                 _inputs[i].ReduceAccumulation(totalDecrease * proportion);
             }
+        }
+
+        private void AddNerves(float amount)
+        {
+            currentNerves = Mathf.Clamp(currentNerves + amount, MinNerves, MaxNerves);
+        }
+
+        private float RemoveNerves(float amount)
+        {
+            float before = currentNerves;
+            currentNerves = Mathf.Clamp(currentNerves - amount, MinNerves, MaxNerves);
+            return before - currentNerves;
+        }
+
+        private void ResetAllNervesState()
+        {
+            currentNerves = 0f;
+            totalInputsDelta = 0f;
+            recoveryDelta = 0f;
+
+            for (int i = 0; i < _inputs.Length; i++)
+                _inputs[i].ResetAccumulation();
         }
 
         private void PushNervesToControllers()
@@ -124,16 +150,7 @@ namespace Player
             }
 
             if (GUILayout.Button("Reset Nerves"))
-            {
-                currentNerves = 0f;
-                for (int i = 0; i < _inputs.Length; i++)
-                {
-                    // Reset accumulation via reflection since we don't have a public method
-                    var field = typeof(NervesInput).GetField("_accumulatedNerves", 
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    field?.SetValue(_inputs[i], 0f);
-                }
-            }
+                ResetAllNervesState();
 
             GUILayout.EndArea();
         }
