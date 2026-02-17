@@ -44,11 +44,8 @@ namespace Player
             if (weaponController != null && weaponController.IsAiming)
             {
                 _recoveryTimer = 0f;
-                Debug.Log("NervesRecovery!!!!!!!!!!!!!!!!!!!!!!: Blocked — player is aiming.");
                 return 0f;
             }
-
-            Debug.Log("AJKHBFKJABDFKJSBDF<KSJBDFS<KFJBS<KFJBSKDF");
 
             if (characterController == null)
                 return 0f;
