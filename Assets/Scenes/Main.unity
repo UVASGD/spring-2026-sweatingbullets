@@ -840,6 +840,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6817638360683979304}
+    - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6817638360683979306}
     - targetCorrespondingSourceObject: {fileID: 7153238028321174612, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1561364921}
@@ -1030,6 +1033,24 @@ MonoBehaviour:
   recoveryDelay: 1.5
   weaponController: {fileID: 781492504}
   characterController: {fileID: 6817638360683979300}
+--- !u!114 &6817638360683979306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6817638360683979277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4d4a8d4dcd0412abf1f7e7cb26c9f25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Player.NearMissNervesInput
+  maxContribution: 30
+  nearMissAngleDegrees: 6
+  nearMissSpikeAmount: 12
+  weaponController: {fileID: 781492504}
+  debugRaycast: 1
+  debugDrawDuration: 25
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

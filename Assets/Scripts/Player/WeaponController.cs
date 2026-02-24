@@ -10,6 +10,22 @@ namespace Player
 {
     public class WeaponController : MonoBehaviour
     {
+        public readonly struct ShotResolutionContext
+        {
+            public ShotResolutionContext(Vector3 origin, Vector3 direction, float range, bool hitEnemy)
+            {
+                Origin = origin;
+                Direction = direction;
+                Range = range;
+                HitEnemy = hitEnemy;
+            }
+
+            public Vector3 Origin { get; }
+            public Vector3 Direction { get; }
+            public float Range { get; }
+            public bool HitEnemy { get; }
+        }
+
         [Header("Input References")] public InputActionReference fireAction;
         public InputActionReference hammerPullAction;
         public InputActionReference aimDownSightsAction;
@@ -33,6 +49,7 @@ namespace Player
         public bool IsAiming => _isAiming;
 
         public event Action OnWeaponFired;
+        public event Action<ShotResolutionContext> OnWeaponShotResolved;
 
         private GameObject
             _regularSmokeSpawnPoint; // I have this instead of a separate gameobject so that smoke spawn will always be dependent on the aim position and hip fire position
@@ -165,9 +182,12 @@ namespace Player
 
             // Create raycast + shot
             if (weaponAudio != null && fireSound != null) weaponAudio.PlayOneShot(fireSound);
+            Vector3 shotOrigin = playerCamera.transform.position;
+            Vector3 shotDirection = playerCamera.transform.forward;
+            bool hitEnemy = false;
             RaycastHit hit;
 
-            if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out hit, range))
+            if (Physics.Raycast(shotOrigin, shotDirection, out hit, range))
             {
                 // Debug.Log("Hit: " + hit.transform.name);
 
@@ -175,10 +195,12 @@ namespace Player
                 EnemyAI enemy = hit.transform.GetComponent<EnemyAI>();
                 if (enemy != null)
                 {
-                    enemy.Hit(hit.point, playerCamera.transform.forward);
+                    enemy.Hit(hit.point, shotDirection);
+                    hitEnemy = true;
                 }
             }
 
+            OnWeaponShotResolved?.Invoke(new ShotResolutionContext(shotOrigin, shotDirection, range, hitEnemy));
             print("fired");
             OnWeaponFired?.Invoke();
             _isHammerCocked = false;
