@@ -1,4 +1,5 @@
 
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,5 +10,11 @@ public class SceneLoader : MonoBehaviour
     {
         Debug.Log("Button clicked");
         SceneManager.LoadScene("Main");
+    }
+
+    public void quitGame()
+    {
+        Application.Quit();
+        Debug.Log("Game has been quitted");
     }
 }
