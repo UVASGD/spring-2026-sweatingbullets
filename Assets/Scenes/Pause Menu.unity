@@ -130,8 +130,10 @@ GameObject:
   - component: {fileID: 92062999}
   - component: {fileID: 92062998}
   - component: {fileID: 92062996}
+  - component: {fileID: 92063000}
+  - component: {fileID: 92063001}
   m_Layer: 0
-  m_Name: Outside POV Camera
+  m_Name: Death Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -188,7 +190,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 92062995}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -223,7 +225,7 @@ Camera:
     m_Bits: 183
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
-  m_TargetDisplay: 1
+  m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
   m_AllowMSAA: 1
@@ -240,13 +242,41 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 92062995}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.063111685, y: -0.82888913, z: 0.09553404, w: 0.5475701}
-  m_LocalPosition: {x: 7.334, y: 3.13, z: 24.293}
+  m_LocalRotation: {x: 0.08096023, y: 0.7024568, z: -0.08096023, w: 0.7024568}
+  m_LocalPosition: {x: -3.8500009, y: 2.53, z: 20}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 13.149, y: 90, z: 0}
+--- !u!114 &92063000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 92062995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0872363ce44fb4ba9ad2ad560f35215b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeathCameraController
+  mainCam: {fileID: 785695879}
+  deathCam: {fileID: 92062998}
+  mouseLookScript: {fileID: 0}
+--- !u!114 &92063001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 92062995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 204af1d81acbd430ba0da05c93294f98, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeathCameraFollow
+  target: {fileID: 6817638360683979287}
 --- !u!114 &327656246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -402,6 +432,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_ActionId: 6c2ab1b8-8984-453a-af3d-a3c78ae1679a
+--- !u!20 &785695879 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 3297080643034497048, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+  m_PrefabInstance: {fileID: 5851341813854994995}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &794702986
 GameObject:
   m_ObjectHideFlags: 0
@@ -857,6 +892,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f94bade685d04340b9e5b8d25b30765, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  deathCam: {fileID: 92063000}
+--- !u!4 &6817638360683979287 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2026146257986547427, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+  m_PrefabInstance: {fileID: 5851341813854994995}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -865,6 +906,6 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 794702987}
   - {fileID: 5851341813854994995}
-  - {fileID: 92062999}
   - {fileID: 1406424797}
   - {fileID: 954381313}
+  - {fileID: 92062999}
