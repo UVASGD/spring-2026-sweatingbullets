@@ -1,10 +1,11 @@
 using Enemy;
+using System;
 using UnityEngine;
 
 namespace Player
 {
     /// <summary>
-    /// Applies an instant nerves spike when a fired shot narrowly misses a visible, alive enemy.
+    /// Applies an instant nerves spike when a fired shot passes through an enemy's near-miss volume.
     /// </summary>
     public class NearMissNervesInput : NervesInput
     {
@@ -12,6 +13,8 @@ namespace Player
         [SerializeField] private float nearMissAngleDegrees = 6f;
         [SerializeField] private float nearMissSpikeAmount = 12f;
         [SerializeField] private WeaponController weaponController;
+        [SerializeField] private LayerMask nearMissTriggerMask;
+        [SerializeField] private bool enableLegacyFallback = true;
 
         private float _pendingSpike;
 
@@ -22,6 +25,8 @@ namespace Player
 
             if (weaponController == null)
                 Debug.LogError("NearMissNervesInput: Could not find WeaponController in parent hierarchy.");
+
+            ResolveNearMissTriggerMask();
         }
 
         private void OnEnable()
@@ -43,19 +48,13 @@ namespace Player
 
             float spike = _pendingSpike;
             _pendingSpike = 0f;
-            Debug.Log($"[NearMiss] CalculateNervesDelta: consuming spike={spike}");
             return spike;
         }
 
         private void HandleWeaponShotResolved(WeaponController.ShotResolutionContext shotContext)
         {
-            Debug.Log($"[NearMiss] HandleWeaponShotResolved called. hitEnemy={shotContext.HitEnemy} spikeAmount={nearMissSpikeAmount}");
-
             if (shotContext.HitEnemy || nearMissSpikeAmount <= 0f)
-            {
-                Debug.Log($"[NearMiss] Skipping near-miss check. hitEnemy={shotContext.HitEnemy} spikeAmount={nearMissSpikeAmount}");
                 return;
-            }
 
             if (shotContext.Range <= 0f || shotContext.Direction.sqrMagnitude <= Mathf.Epsilon)
             {
@@ -63,27 +62,80 @@ namespace Player
                 return;
             }
 
-            Vector3 shotDirection = shotContext.Direction.normalized;
+            if (TryDetectTriggerNearMiss(shotContext, out _))
+            {
+                _pendingSpike += nearMissSpikeAmount;
+                return;
+            }
 
+            if (enableLegacyFallback && TryDetectLegacyNearMiss(shotContext))
+                _pendingSpike += nearMissSpikeAmount;
+        }
+
+        private bool TryDetectTriggerNearMiss(
+            WeaponController.ShotResolutionContext shotContext,
+            out EnemyAI nearMissEnemy)
+        {
+            nearMissEnemy = null;
+
+            int resolvedMask = ResolveNearMissTriggerMask();
+            if (resolvedMask == 0)
+                return false;
+
+            RaycastHit[] triggerHits = Physics.RaycastAll(
+                shotContext.Origin,
+                shotContext.Direction.normalized,
+                shotContext.Range,
+                resolvedMask,
+                QueryTriggerInteraction.Collide);
+
+            if (triggerHits.Length == 0)
+                return false;
+
+            Array.Sort(triggerHits, CompareHitDistance);
+
+            float solidHitDistance = shotContext.HitSomething
+                ? shotContext.HitDistance
+                : float.PositiveInfinity;
+
+            for (int i = 0; i < triggerHits.Length; i++)
+            {
+                RaycastHit triggerHit = triggerHits[i];
+                if (triggerHit.distance >= solidHitDistance)
+                    break;
+
+                NearMissTriggerVolume volume = triggerHit.collider.GetComponentInParent<NearMissTriggerVolume>();
+                if (volume == null || !volume.IsActiveForNearMiss)
+                    continue;
+
+                EnemyAI owner = volume.Owner;
+                if (owner == null || owner.isDead || !owner.isActiveAndEnabled)
+                    continue;
+
+                nearMissEnemy = owner;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryDetectLegacyNearMiss(WeaponController.ShotResolutionContext shotContext)
+        {
+            Vector3 shotDirection = shotContext.Direction.normalized;
             EnemyAI[] enemies = FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
-            Debug.Log($"[NearMiss] Checking {enemies.Length} enemies for near miss.");
             float bestAngle = float.MaxValue;
-            bool hasNearMiss = false;
 
             for (int i = 0; i < enemies.Length; i++)
             {
                 EnemyAI enemy = enemies[i];
                 if (enemy == null || enemy.isDead || !enemy.isActiveAndEnabled)
-                {
-                    Debug.Log($"[NearMiss] Skipping enemy {enemy?.name ?? "null"}: dead or disabled.");
                     continue;
-                }
+
+                if (HasActiveNearMissVolume(enemy))
+                    continue;
 
                 if (!TryGetEnemyCollider(enemy, out Collider enemyCollider))
-                {
-                    Debug.LogWarning($"[NearMiss] No collider found on enemy {enemy.name}, skipping.");
                     continue;
-                }
 
                 Vector3 projectedPoint = ProjectPointOntoShotSegment(
                     shotContext.Origin,
@@ -94,40 +146,52 @@ namespace Player
                 Vector3 closestPoint = enemyCollider.ClosestPoint(projectedPoint);
                 Vector3 toClosestPoint = closestPoint - shotContext.Origin;
                 if (toClosestPoint.sqrMagnitude <= Mathf.Epsilon)
-                {
-                    Debug.Log($"[NearMiss] Enemy {enemy.name} closest point is at origin, skipping.");
                     continue;
-                }
 
                 float missAngle = Vector3.Angle(shotDirection, toClosestPoint);
-                bool withinAngle = missAngle <= nearMissAngleDegrees;
-                bool hasLOS = withinAngle && HasLineOfSight(shotContext.Origin, closestPoint, enemy);
-
-                Debug.Log($"[NearMiss] Enemy={enemy.name} angle={missAngle:F2}° threshold={nearMissAngleDegrees}° withinAngle={withinAngle} LOS={hasLOS}");
-
-                if (!withinAngle)
+                if (missAngle > nearMissAngleDegrees)
                     continue;
 
-                if (!hasLOS)
+                if (!HasLineOfSight(shotContext.Origin, closestPoint, enemy))
                     continue;
 
                 if (missAngle < bestAngle)
-                {
                     bestAngle = missAngle;
-                    hasNearMiss = true;
-                }
             }
 
-            if (hasNearMiss)
-            {
-                Debug.Log($"[NearMiss] Near miss detected! Spike={nearMissSpikeAmount} bestAngle={bestAngle:F2}°. Pending spike is now {_pendingSpike + nearMissSpikeAmount}.");
-                _pendingSpike += nearMissSpikeAmount;
-            }
-            else
-            {
-                Debug.Log("[NearMiss] No near miss detected.");
-            }
+            return bestAngle < float.MaxValue;
         }
+
+        private static int CompareHitDistance(RaycastHit left, RaycastHit right)
+        {
+            return left.distance.CompareTo(right.distance);
+        }
+
+        private static bool HasActiveNearMissVolume(EnemyAI enemy)
+        {
+            NearMissTriggerVolume volume = enemy.GetComponentInChildren<NearMissTriggerVolume>(true);
+            return volume != null && volume.IsActiveForNearMiss;
+        }
+
+        private int ResolveNearMissTriggerMask()
+        {
+            if (nearMissTriggerMask.value != 0)
+                return nearMissTriggerMask.value;
+
+            int nearMissLayer = LayerMask.NameToLayer("EnemyNearMiss");
+            if (nearMissLayer < 0)
+                return 0;
+
+            nearMissTriggerMask = 1 << nearMissLayer;
+            return nearMissTriggerMask.value;
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            ResolveNearMissTriggerMask();
+        }
+#endif
 
         private static Vector3 ProjectPointOntoShotSegment(
             Vector3 rayOrigin,
@@ -142,12 +206,18 @@ namespace Player
 
         private static bool TryGetEnemyCollider(EnemyAI enemy, out Collider enemyCollider)
         {
-            enemyCollider = enemy.GetComponent<Collider>();
-            if (enemyCollider != null)
-                return true;
+            Collider[] colliders = enemy.GetComponentsInChildren<Collider>();
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                if (colliders[i] != null && !colliders[i].isTrigger)
+                {
+                    enemyCollider = colliders[i];
+                    return true;
+                }
+            }
 
-            enemyCollider = enemy.GetComponentInChildren<Collider>();
-            return enemyCollider != null;
+            enemyCollider = null;
+            return false;
         }
 
         private static bool HasLineOfSight(Vector3 shotOrigin, Vector3 targetPoint, EnemyAI targetEnemy)
@@ -157,7 +227,13 @@ namespace Player
             if (distance <= Mathf.Epsilon)
                 return false;
 
-            if (!Physics.Raycast(shotOrigin, direction / distance, out RaycastHit hit, distance))
+            if (!Physics.Raycast(
+                    shotOrigin,
+                    direction / distance,
+                    out RaycastHit hit,
+                    distance,
+                    Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore))
                 return false;
 
             EnemyAI hitEnemy = hit.collider.GetComponentInParent<EnemyAI>();

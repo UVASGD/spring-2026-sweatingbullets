@@ -12,18 +12,28 @@ namespace Player
     {
         public readonly struct ShotResolutionContext
         {
-            public ShotResolutionContext(Vector3 origin, Vector3 direction, float range, bool hitEnemy)
+            public ShotResolutionContext(
+                Vector3 origin,
+                Vector3 direction,
+                float range,
+                bool hitEnemy,
+                bool hitSomething,
+                float hitDistance)
             {
                 Origin = origin;
                 Direction = direction;
                 Range = range;
                 HitEnemy = hitEnemy;
+                HitSomething = hitSomething;
+                HitDistance = hitDistance;
             }
 
             public Vector3 Origin { get; }
             public Vector3 Direction { get; }
             public float Range { get; }
             public bool HitEnemy { get; }
+            public bool HitSomething { get; }
+            public float HitDistance { get; }
         }
 
         [Header("Input References")] public InputActionReference fireAction;
@@ -185,14 +195,24 @@ namespace Player
             Vector3 shotOrigin = playerCamera.transform.position;
             Vector3 shotDirection = playerCamera.transform.forward;
             bool hitEnemy = false;
+            bool hitSomething = false;
+            float hitDistance = range;
             RaycastHit hit;
 
-            if (Physics.Raycast(shotOrigin, shotDirection, out hit, range))
+            if (Physics.Raycast(
+                    shotOrigin,
+                    shotDirection,
+                    out hit,
+                    range,
+                    Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore))
             {
+                hitSomething = true;
+                hitDistance = hit.distance;
                 // Debug.Log("Hit: " + hit.transform.name);
 
                 // Check if the object we hit has the EnemyHealth script
-                EnemyAI enemy = hit.transform.GetComponent<EnemyAI>();
+                EnemyAI enemy = hit.transform.GetComponentInParent<EnemyAI>();
                 if (enemy != null)
                 {
                     enemy.Hit(hit.point, shotDirection);
@@ -200,7 +220,13 @@ namespace Player
                 }
             }
 
-            OnWeaponShotResolved?.Invoke(new ShotResolutionContext(shotOrigin, shotDirection, range, hitEnemy));
+            OnWeaponShotResolved?.Invoke(new ShotResolutionContext(
+                shotOrigin,
+                shotDirection,
+                range,
+                hitEnemy,
+                hitSomething,
+                hitDistance));
             print("fired");
             OnWeaponFired?.Invoke();
             _isHammerCocked = false;
