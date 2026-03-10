@@ -1,22 +1,77 @@
+using System.Collections.Generic;
 using Enemy;
-using System;
 using UnityEngine;
 
 namespace Player
 {
     /// <summary>
-    /// Applies an instant nerves spike when a fired shot passes through an enemy's near-miss volume.
+    /// Applies an instant nerves spike when a fired shot appears to narrowly miss an enemy on screen.
     /// </summary>
     public class NearMissNervesInput : NervesInput
     {
         [Header("Near-Miss Settings")]
-        [SerializeField] private float nearMissAngleDegrees = 6f;
-        [SerializeField] private float nearMissSpikeAmount = 12f;
+        [Tooltip("Maximum viewport-space distance from screen center for a shot to count as a near miss.")]
+        [SerializeField] private float missRadius = 0.08f;
+        [Tooltip("Smallest nerves spike that can be applied when a near miss is detected.")]
+        [SerializeField] private float minSpike = 2f;
+        [Tooltip("Largest nerves spike that can be applied for an extremely close near miss.")]
+        [SerializeField] private float maxSpike = 12f;
+        [Tooltip("Shapes how fast the spike grows as the miss gets closer to the screen center.")]
+        [SerializeField] private AnimationCurve missCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+        [Tooltip("Shapes how strongly nearby enemies amplify the spike compared with distant enemies.")]
+        [SerializeField] private AnimationCurve distanceCurve = AnimationCurve.Linear(0f, 1f, 1f, 0f);
+        [Tooltip("Enemy distance at or below this uses the strongest distance weighting.")]
+        [SerializeField] private float nearDistance = 5f;
+        [Tooltip("Enemy distance at or beyond this uses the weakest distance weighting.")]
+        [SerializeField] private float farDistance = 30f;
+        [Tooltip("When enabled, NearMissTriggerVolume colliders are included as near-miss helper geometry.")]
+        [SerializeField] private bool useVolumes = true;
+        [Tooltip("Logs the chosen near-miss candidate and scoring details for tuning.")]
+        [SerializeField] private bool debugNearMiss = false;
+        [Tooltip("Weapon controller that publishes resolved player shots for near-miss evaluation.")]
         [SerializeField] private WeaponController weaponController;
-        [SerializeField] private LayerMask nearMissTriggerMask;
-        [SerializeField] private bool enableLegacyFallback = true;
 
+        private readonly List<Collider> _candidateColliders = new List<Collider>();
         private float _pendingSpike;
+
+        private readonly struct NearMissCandidate
+        {
+            public NearMissCandidate(
+                EnemyAI enemy,
+                Vector3 point,
+                float screenMiss,
+                float missStrength,
+                float distanceStrength,
+                float worldDistance,
+                float spike)
+            {
+                Enemy = enemy;
+                Point = point;
+                ScreenMiss = screenMiss;
+                MissStrength = missStrength;
+                DistanceStrength = distanceStrength;
+                WorldDistance = worldDistance;
+                Spike = spike;
+            }
+
+            public EnemyAI Enemy { get; }
+            public Vector3 Point { get; }
+            public float ScreenMiss { get; }
+            public float MissStrength { get; }
+            public float DistanceStrength { get; }
+            public float WorldDistance { get; }
+            public float Spike { get; }
+        }
+
+        private readonly struct ClosestPointCandidate
+        {
+            public ClosestPointCandidate(Vector3 point)
+            {
+                Point = point;
+            }
+
+            public Vector3 Point { get; }
+        }
 
         private void Awake()
         {
@@ -25,8 +80,6 @@ namespace Player
 
             if (weaponController == null)
                 Debug.LogError("NearMissNervesInput: Could not find WeaponController in parent hierarchy.");
-
-            ResolveNearMissTriggerMask();
         }
 
         private void OnEnable()
@@ -41,6 +94,17 @@ namespace Player
                 weaponController.OnWeaponShotResolved -= HandleWeaponShotResolved;
         }
 
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            missRadius = Mathf.Max(0f, missRadius);
+            minSpike = Mathf.Max(0f, minSpike);
+            maxSpike = Mathf.Max(minSpike, maxSpike);
+            nearDistance = Mathf.Max(0f, nearDistance);
+            farDistance = Mathf.Max(nearDistance, farDistance);
+        }
+#endif
+
         protected override float CalculateNervesDelta()
         {
             if (_pendingSpike <= 0f)
@@ -53,145 +117,214 @@ namespace Player
 
         private void HandleWeaponShotResolved(WeaponController.ShotResolutionContext shotContext)
         {
-            if (shotContext.HitEnemy || nearMissSpikeAmount <= 0f)
+            if (shotContext.HitEnemy || maxSpike <= 0f || missRadius <= 0f)
                 return;
 
             if (shotContext.Range <= 0f || shotContext.Direction.sqrMagnitude <= Mathf.Epsilon)
             {
-                Debug.LogWarning("[NearMiss] Invalid shot context: range or direction is zero.");
+                if (debugNearMiss)
+                    Debug.LogWarning("[NearMiss] Invalid shot context: range or direction is zero.");
                 return;
             }
 
-            if (TryDetectTriggerNearMiss(shotContext, out _))
+            if (!TryResolveCamera(out Camera shotCamera))
+                return;
+
+            if (!TryFindBestNearMiss(shotContext, shotCamera, out NearMissCandidate candidate))
+                return;
+
+            _pendingSpike += candidate.Spike;
+
+            if (debugNearMiss)
             {
-                _pendingSpike += nearMissSpikeAmount;
-                return;
+                Debug.Log(
+                    $"[NearMiss] Enemy={candidate.Enemy.name}, ScreenMiss={candidate.ScreenMiss:F4}, " +
+                    $"MissStrength={candidate.MissStrength:F2}, DistanceStrength={candidate.DistanceStrength:F2}, " +
+                    $"WorldDistance={candidate.WorldDistance:F2}, Spike={candidate.Spike:F2}");
             }
-
-            if (enableLegacyFallback && TryDetectLegacyNearMiss(shotContext))
-                _pendingSpike += nearMissSpikeAmount;
         }
 
-        private bool TryDetectTriggerNearMiss(
-            WeaponController.ShotResolutionContext shotContext,
-            out EnemyAI nearMissEnemy)
+        private bool TryResolveCamera(out Camera shotCamera)
         {
-            nearMissEnemy = null;
-
-            int resolvedMask = ResolveNearMissTriggerMask();
-            if (resolvedMask == 0)
-                return false;
-
-            RaycastHit[] triggerHits = Physics.RaycastAll(
-                shotContext.Origin,
-                shotContext.Direction.normalized,
-                shotContext.Range,
-                resolvedMask,
-                QueryTriggerInteraction.Collide);
-
-            if (triggerHits.Length == 0)
-                return false;
-
-            Array.Sort(triggerHits, CompareHitDistance);
-
-            float solidHitDistance = shotContext.HitSomething
-                ? shotContext.HitDistance
-                : float.PositiveInfinity;
-
-            for (int i = 0; i < triggerHits.Length; i++)
-            {
-                RaycastHit triggerHit = triggerHits[i];
-                if (triggerHit.distance >= solidHitDistance)
-                    break;
-
-                NearMissTriggerVolume volume = triggerHit.collider.GetComponentInParent<NearMissTriggerVolume>();
-                if (volume == null || !volume.IsActiveForNearMiss)
-                    continue;
-
-                EnemyAI owner = volume.Owner;
-                if (owner == null || owner.isDead || !owner.isActiveAndEnabled)
-                    continue;
-
-                nearMissEnemy = owner;
+            shotCamera = weaponController != null ? weaponController.playerCamera : null;
+            if (shotCamera != null)
                 return true;
-            }
 
+            shotCamera = Camera.main;
+            if (shotCamera != null)
+                return true;
+
+            Debug.LogWarning("NearMissNervesInput: No player camera available for near-miss evaluation.");
             return false;
         }
 
-        private bool TryDetectLegacyNearMiss(WeaponController.ShotResolutionContext shotContext)
+        private bool TryFindBestNearMiss(
+            WeaponController.ShotResolutionContext shotContext,
+            Camera shotCamera,
+            out NearMissCandidate bestCandidate)
         {
+            bestCandidate = default;
+
             Vector3 shotDirection = shotContext.Direction.normalized;
+            float shotLimit = shotContext.HitSomething
+                ? Mathf.Min(shotContext.HitDistance, shotContext.Range)
+                : shotContext.Range;
+
+            if (shotLimit <= Mathf.Epsilon)
+                return false;
+
             EnemyAI[] enemies = FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
-            float bestAngle = float.MaxValue;
+            bool foundCandidate = false;
+            float bestScreenMiss = float.MaxValue;
 
             for (int i = 0; i < enemies.Length; i++)
             {
                 EnemyAI enemy = enemies[i];
-                if (enemy == null || enemy.isDead || !enemy.isActiveAndEnabled)
+                if (!IsValidEnemy(enemy))
                     continue;
 
-                if (HasActiveNearMissVolume(enemy))
+                if (!TryGetClosestPointOnEnemy(enemy, shotContext.Origin, shotDirection, shotLimit, out ClosestPointCandidate pointCandidate))
                     continue;
 
-                if (!TryGetEnemyCollider(enemy, out Collider enemyCollider))
+                if (!HasLineOfSight(shotContext.Origin, pointCandidate.Point, enemy))
+                    continue;
+
+                Vector3 viewportPoint = shotCamera.WorldToViewportPoint(pointCandidate.Point);
+                if (viewportPoint.z <= 0f)
+                    continue;
+
+                float screenMiss = Vector2.Distance(
+                    new Vector2(viewportPoint.x, viewportPoint.y),
+                    new Vector2(0.5f, 0.5f));
+
+                if (screenMiss > missRadius)
+                    continue;
+
+                float missStrength = EvaluateMissStrength(screenMiss);
+                float worldDistance = Vector3.Distance(shotContext.Origin, pointCandidate.Point);
+                float distanceStrength = EvaluateDistanceStrength(worldDistance);
+                float spike = Mathf.Lerp(minSpike, maxSpike, missStrength * distanceStrength);
+
+                if (!foundCandidate || screenMiss < bestScreenMiss)
+                {
+                    bestScreenMiss = screenMiss;
+                    bestCandidate = new NearMissCandidate(
+                        enemy,
+                        pointCandidate.Point,
+                        screenMiss,
+                        missStrength,
+                        distanceStrength,
+                        worldDistance,
+                        spike);
+                    foundCandidate = true;
+                }
+            }
+
+            return foundCandidate;
+        }
+
+        private bool TryGetClosestPointOnEnemy(
+            EnemyAI enemy,
+            Vector3 shotOrigin,
+            Vector3 shotDirection,
+            float shotLimit,
+            out ClosestPointCandidate bestCandidate)
+        {
+            bestCandidate = default;
+            CollectCandidateColliders(enemy, _candidateColliders);
+            if (_candidateColliders.Count == 0)
+                return false;
+
+            bool foundCandidate = false;
+            float bestOffsetSqr = float.MaxValue;
+
+            for (int i = 0; i < _candidateColliders.Count; i++)
+            {
+                Collider candidateCollider = _candidateColliders[i];
+                if (candidateCollider == null || !candidateCollider.enabled)
                     continue;
 
                 Vector3 projectedPoint = ProjectPointOntoShotSegment(
-                    shotContext.Origin,
+                    shotOrigin,
                     shotDirection,
-                    shotContext.Range,
-                    enemy.transform.position);
+                    shotLimit,
+                    candidateCollider.bounds.center);
 
-                Vector3 closestPoint = enemyCollider.ClosestPoint(projectedPoint);
-                Vector3 toClosestPoint = closestPoint - shotContext.Origin;
-                if (toClosestPoint.sqrMagnitude <= Mathf.Epsilon)
+                Vector3 closestPoint = candidateCollider.ClosestPoint(projectedPoint);
+                Vector3 toClosestPoint = closestPoint - shotOrigin;
+                float distanceAlongShot = Vector3.Dot(toClosestPoint, shotDirection);
+                if (distanceAlongShot <= 0f || distanceAlongShot > shotLimit)
                     continue;
 
-                float missAngle = Vector3.Angle(shotDirection, toClosestPoint);
-                if (missAngle > nearMissAngleDegrees)
-                    continue;
+                Vector3 pointOnShot = shotOrigin + shotDirection * distanceAlongShot;
+                float offsetSqr = (closestPoint - pointOnShot).sqrMagnitude;
 
-                if (!HasLineOfSight(shotContext.Origin, closestPoint, enemy))
-                    continue;
-
-                if (missAngle < bestAngle)
-                    bestAngle = missAngle;
+                if (!foundCandidate || offsetSqr < bestOffsetSqr)
+                {
+                    bestOffsetSqr = offsetSqr;
+                    bestCandidate = new ClosestPointCandidate(closestPoint);
+                    foundCandidate = true;
+                }
             }
 
-            return bestAngle < float.MaxValue;
+            return foundCandidate;
         }
 
-        private static int CompareHitDistance(RaycastHit left, RaycastHit right)
+        private void CollectCandidateColliders(EnemyAI enemy, List<Collider> colliders)
         {
-            return left.distance.CompareTo(right.distance);
+            colliders.Clear();
+
+            if (useVolumes)
+            {
+                NearMissTriggerVolume[] volumes = enemy.GetComponentsInChildren<NearMissTriggerVolume>(true);
+                for (int i = 0; i < volumes.Length; i++)
+                {
+                    NearMissTriggerVolume volume = volumes[i];
+                    if (volume == null || !volume.IsActiveForNearMiss)
+                        continue;
+
+                    Collider volumeCollider = volume.GetComponent<Collider>();
+                    if (volumeCollider != null && volumeCollider.enabled)
+                        colliders.Add(volumeCollider);
+                }
+            }
+
+            Collider[] enemyColliders = enemy.GetComponentsInChildren<Collider>();
+            for (int i = 0; i < enemyColliders.Length; i++)
+            {
+                Collider candidateCollider = enemyColliders[i];
+                if (candidateCollider != null && candidateCollider.enabled && !candidateCollider.isTrigger)
+                    colliders.Add(candidateCollider);
+            }
         }
 
-        private static bool HasActiveNearMissVolume(EnemyAI enemy)
+        private float EvaluateMissStrength(float screenMiss)
         {
-            NearMissTriggerVolume volume = enemy.GetComponentInChildren<NearMissTriggerVolume>(true);
-            return volume != null && volume.IsActiveForNearMiss;
+            float missT = 1f - Mathf.Clamp01(screenMiss / missRadius);
+            return Mathf.Clamp01(EvaluateCurve(missCurve, missT, missT));
         }
 
-        private int ResolveNearMissTriggerMask()
+        private float EvaluateDistanceStrength(float worldDistance)
         {
-            if (nearMissTriggerMask.value != 0)
-                return nearMissTriggerMask.value;
+            if (farDistance <= nearDistance)
+                return 1f;
 
-            int nearMissLayer = LayerMask.NameToLayer("EnemyNearMiss");
-            if (nearMissLayer < 0)
-                return 0;
-
-            nearMissTriggerMask = 1 << nearMissLayer;
-            return nearMissTriggerMask.value;
+            float distanceT = Mathf.InverseLerp(nearDistance, farDistance, worldDistance);
+            return Mathf.Clamp01(EvaluateCurve(distanceCurve, distanceT, 1f - distanceT));
         }
 
-#if UNITY_EDITOR
-        private void OnValidate()
+        private static float EvaluateCurve(AnimationCurve curve, float time, float fallback)
         {
-            ResolveNearMissTriggerMask();
+            if (curve == null || curve.length == 0)
+                return fallback;
+
+            return curve.Evaluate(time);
         }
-#endif
+
+        private static bool IsValidEnemy(EnemyAI enemy)
+        {
+            return enemy != null && enemy.isActiveAndEnabled && !enemy.isDead;
+        }
 
         private static Vector3 ProjectPointOntoShotSegment(
             Vector3 rayOrigin,
@@ -202,22 +335,6 @@ namespace Player
             float distanceOnRay = Vector3.Dot(point - rayOrigin, rayDirection);
             float clampedDistance = Mathf.Clamp(distanceOnRay, 0f, rayRange);
             return rayOrigin + rayDirection * clampedDistance;
-        }
-
-        private static bool TryGetEnemyCollider(EnemyAI enemy, out Collider enemyCollider)
-        {
-            Collider[] colliders = enemy.GetComponentsInChildren<Collider>();
-            for (int i = 0; i < colliders.Length; i++)
-            {
-                if (colliders[i] != null && !colliders[i].isTrigger)
-                {
-                    enemyCollider = colliders[i];
-                    return true;
-                }
-            }
-
-            enemyCollider = null;
-            return false;
         }
 
         private static bool HasLineOfSight(Vector3 shotOrigin, Vector3 targetPoint, EnemyAI targetEnemy)
@@ -234,7 +351,7 @@ namespace Player
                     distance,
                     Physics.DefaultRaycastLayers,
                     QueryTriggerInteraction.Ignore))
-                return false;
+                return true;
 
             EnemyAI hitEnemy = hit.collider.GetComponentInParent<EnemyAI>();
             return hitEnemy == targetEnemy;
