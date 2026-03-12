@@ -43,7 +43,8 @@ namespace Enemy
             _agent = GetComponent<NavMeshAgent>();
 
             // Add states
-            _stateMachine.AddState(EnemyState.Patrol, new PatrolState(false, this));
+            _stateMachine.AddState(EnemyState.Patrol, new PatrolState(false, this, 10, 2, 2,100000));
+            _stateMachine.AddState(EnemyState.Alert, new PatrolState(false, this, 10, 3.0f, 0.5f, 5));
             _stateMachine.AddState(EnemyState.Follow, new FollowState(false, this, player.transform));
             _stateMachine.AddState(EnemyState.Shoot, new ShootState(true, this, aimTime, weaponRange));
             _stateMachine.AddState(EnemyState.FollowUpToShoot, new FollowUpToShootState(true, this, player.transform, strafeDistance,5.0f));
