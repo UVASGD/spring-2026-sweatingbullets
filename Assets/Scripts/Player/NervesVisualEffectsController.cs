@@ -43,6 +43,7 @@ namespace Player
         private ColorAdjustments _colorAdjustments;
         private ChromaticAberration _chromaticAberration;
         private LensDistortion _lensDistortion;
+        [SerializeField]
         private float _currentNervesLevel = 0f;
         private float _visualNervesLevel = 0f;
         private Coroutine _demoCoroutine;

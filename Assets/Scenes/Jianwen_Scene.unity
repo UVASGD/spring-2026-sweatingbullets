@@ -912,10 +912,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.NervesAudioController
   audioSource: {fileID: 6817638360683979284}
-  lowPassFilter: {fileID: 0}
-  loopClip: {fileID: 8300000, guid: de2d6a6448e63401b82dcbdf1b3896ff, type: 3}
-  playOnStart: 0
+  nervesAudioClip: {fileID: 8300000, guid: 34f87424eb90545b9a70ba0641648a77, type: 3}
+  maxVolume: 1
+  minPitch: 0.6
+  maxPitch: 2.5
+  demoIntensifyDuration: 3
+  demoFadeDuration: 5
   transitionSpeed: 8
+  showDebugInfo: 0
+  debugToggleKeyName: n
+  isDemoActive: 0
   intensityCurve:
     serializedVersion: 2
     m_Curve:
@@ -940,24 +946,6 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  minVolume: 0.1
-  maxVolume: 1
-  silenceAtZero: 1
-  startNervesThreshold: 0.01
-  startVolume: 0.08
-  affectPitch: 1
-  minPitch: 0.6
-  maxPitch: 2.5
-  affectLowPass: 0
-  minCutoff: 500
-  maxCutoff: 22000
-  showDebugInfo: 0
-  debugToggleKeyName: n
-  isDemoActive: 0
-  demoIntensifyDuration: 3
-  demoPauseAtLevel: 0
-  demoPauseDuration: 0
-  demoFadeDuration: 5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
