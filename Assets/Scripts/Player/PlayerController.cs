@@ -6,39 +6,54 @@ namespace Player
     public class PlayerController : MonoBehaviour
     {
         [SerializeField] private DeathCameraController deathCam;
+        [SerializeField] private MonoBehaviour movementScript;
+
         private Rigidbody _rb;
         private bool _isDead;
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
+
         void Start()
         {
             _rb = GetComponent<Rigidbody>();
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-            
-        }
         public void Hit(Vector3 hitPoint, Vector3 hitDirection)
         {
             if (_isDead) return;
             _isDead = true;
+
             Debug.Log("Omg! The player died. oof");
-            if (deathCam) deathCam.ActivateDeathCam();
+
+            // Disable player movement
+            if (movementScript)
+                movementScript.enabled = false;
+
+            // Activate death camera
+            if (deathCam)
+                deathCam.ActivateDeathCam();
+
             StartCoroutine(DelayedFall(hitPoint, hitDirection));
         }
+
         IEnumerator DelayedFall(Vector3 hitPoint, Vector3 hitDirection)
         {
+            // Clear existing movement
+            _rb.linearVelocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
+
+            // Enable physics
             _rb.isKinematic = false;
-            _rb.useGravity = false;
-            _rb.constraints = RigidbodyConstraints.FreezeRotation;
-
-            _rb.AddForceAtPosition(hitDirection * 10f, hitPoint, ForceMode.Impulse);
-
-            yield return new WaitForSeconds(0.3f);
-
             _rb.useGravity = true;
+
+            // Allow the capsule to rotate and fall
             _rb.constraints = RigidbodyConstraints.None;
+
+            // Apply force where the player was hit
+            _rb.AddForceAtPosition(hitDirection * 3f, hitPoint, ForceMode.Impulse);
+
+            // Add a little torque so the capsule tips over
+            _rb.AddTorque(transform.right * 1f, ForceMode.Impulse);
+
+            yield return null;
         }
     }
 }

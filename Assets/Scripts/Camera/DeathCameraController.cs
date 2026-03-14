@@ -1,43 +1,76 @@
 using UnityEngine;
+using System.Collections;
 
 public class DeathCameraController : MonoBehaviour
 {
     [SerializeField] private Camera mainCam;
     [SerializeField] private Camera deathCam;
     [SerializeField] private MonoBehaviour mouseLookScript;
+    [SerializeField] private Transform player;
+    [SerializeField] private UIToolkitScreenFade screenFade;
+    [SerializeField] private DeathScreenUI deathScreen;
+
+    private DeathCameraFollow deathFollow;
+
+    void Start()
+    {
+        // Auto-find fade if reference was lost after scene reload
+        if (screenFade == null)
+            screenFade = FindObjectOfType<UIToolkitScreenFade>();
+
+        // Auto-find death screen if missing
+        if (deathScreen == null)
+            deathScreen = FindObjectOfType<DeathScreenUI>();
+
+        deathFollow = deathCam.GetComponent<DeathCameraFollow>();
+
+        // Ensure the death camera always knows the player
+        if (deathFollow != null && player != null)
+            deathFollow.SetTarget(player);
+
+        // Death camera should not render at start
+        if (deathCam != null)
+            deathCam.enabled = false;
+    }
 
     public void ActivateDeathCam()
     {
-        Debug.Log("ActivateDeathCam called");
-        foreach (var c in Camera.allCameras)
+        StartCoroutine(DeathTransition());
+    }
+
+    private IEnumerator DeathTransition()
+    {
+        // Fade screen to black
+        if (screenFade != null)
         {
-            Debug.Log($"CAM: {c.name} enabled={c.enabled} active={c.gameObject.activeInHierarchy} depth={c.depth} tag={c.tag}");
-        }
-        if (!mainCam || !deathCam)
-        {
-            Debug.LogError($"Missing camera reference. mainCam={(mainCam?mainCam.name:"NULL")}, deathCam={(deathCam?deathCam.name:"NULL")}");
-            return;
+            yield return StartCoroutine(screenFade.FadeOut());
         }
 
-        // If the death camera GameObject was disabled, enabling the component won't help.
-        deathCam.gameObject.SetActive(true);
-        mainCam.gameObject.SetActive(true); // in case something else disabled it
+        // Stop player camera control
+        if (mouseLookScript != null)
+            mouseLookScript.enabled = false;
 
-        // Disable player camera rotation
-        if (mouseLookScript) mouseLookScript.enabled = false;
+        // Freeze the death camera so it stops following
+        if (deathFollow != null)
+            deathFollow.FreezeCamera();
 
         // Switch cameras
-        mainCam.enabled = false;
-        deathCam.enabled = true;
+        if (mainCam != null) mainCam.enabled = false;
+        if (deathCam != null) deathCam.enabled = true;
 
-        // Make deathCam win even if another camera is also enabled (depth tie-breaker)
-        deathCam.depth = 100;
-        mainCam.depth = 0;
+        // Small delay so camera settles
+        yield return new WaitForSeconds(0.2f);
 
-        // Cursor optional
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        // Fade back in to the death camera
+        if (screenFade != null)
+        {
+            yield return StartCoroutine(screenFade.FadeIn());
+        }
 
-        Debug.Log($"Switched. mainCam.enabled={mainCam.enabled}, deathCam.enabled={deathCam.enabled}, deathCam.activeInHierarchy={deathCam.gameObject.activeInHierarchy}");
+        // Show death screen UI
+        if (deathScreen != null)
+        {
+            deathScreen.Show();
+        }
     }
 }
