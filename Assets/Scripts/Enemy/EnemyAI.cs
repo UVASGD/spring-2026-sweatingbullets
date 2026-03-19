@@ -141,7 +141,30 @@ namespace Enemy
             if (isDead) return; // Already dead
 
             _stateMachine.Trigger(StateEvent.Died);
-            // Additional death logic could go here
+            Die();
+        }
+
+        public void ExplosionHit(Vector3 hitDirection)
+        {
+            // Apply physics hit
+            _rb.isKinematic = false; 
+            _rb.useGravity = true;
+            _rb.constraints = RigidbodyConstraints.None;
+            _rb.AddForce(hitDirection * 15f, ForceMode.Impulse);
+            //_rb.AddTorque(Random.insideUnitSphere * 10f, ForceMode.Impulse);
+
+            if (isDead) return; // Already dead
+
+            _stateMachine.Trigger(StateEvent.Died);
+            Die();
+        }
+
+        private void Die(){
+            isDead = true;
+            // Disable NavMeshAgent and other components as needed
+            _agent.enabled = false;
+            weapon.SetActive(false);
+            // Additional death logic (e.g., play animation, drop loot) could go here
         }
 
         private bool CanSeePlayer()
