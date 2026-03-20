@@ -130,8 +130,9 @@ GameObject:
   - component: {fileID: 92062999}
   - component: {fileID: 92062998}
   - component: {fileID: 92062996}
+  - component: {fileID: 92063000}
   m_Layer: 0
-  m_Name: Outside POV Camera
+  m_Name: DeathCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -199,7 +200,7 @@ Camera:
   m_ShutterSpeed: 0.005
   m_Aperture: 16
   m_FocusDistance: 10
-  m_FocalLength: 50
+  m_FocalLength: 10.804849
   m_BladeCount: 5
   m_Curvature: {x: 2, y: 11}
   m_BarrelClipping: 0.25
@@ -214,7 +215,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 74
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -240,13 +241,28 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 92062995}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.063111685, y: -0.82888913, z: 0.09553404, w: 0.5475701}
-  m_LocalPosition: {x: 7.334, y: 3.13, z: 24.293}
+  m_LocalRotation: {x: 0.30070573, y: -0, z: -0, w: 0.95371693}
+  m_LocalPosition: {x: 0, y: 2.6230009, z: -2.3540003}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_Father: {fileID: 6817638360683979287}
+  m_LocalEulerAnglesHint: {x: 35, y: 90, z: 0}
+--- !u!114 &92063000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 92062995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0872363ce44fb4ba9ad2ad560f35215b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  mainCam: {fileID: 1987981252}
+  deathCam: {fileID: 92062998}
+  mouseLookScript: {fileID: 0}
 --- !u!114 &327656246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -669,6 +685,9 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!20 &1987981252 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 3297080643034497048, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
 --- !u!1 &1561364920 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7153238028321174612, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
@@ -809,7 +828,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 2026146257986547427, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 92062999}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
@@ -841,6 +863,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f94bade685d04340b9e5b8d25b30765, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  deathCam: {fileID: 92063000}
+--- !u!4 &6817638360683979287 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2026146257986547427, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+  m_PrefabInstance: {fileID: 5851341813854994995}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &6817638360683979281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -966,5 +994,4 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 794702987}
   - {fileID: 5851341813854994995}
-  - {fileID: 92062999}
   - {fileID: 1406424797}
