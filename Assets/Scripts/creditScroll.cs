@@ -20,13 +20,13 @@ public class creditScroll : MonoBehaviour
     {
         if (moving)
         {
-            transform.position = Vector3.MoveTowards(transform.position, endPos, 20.0f * Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, endPos, 50.0f * Time.deltaTime);
         }
     }
 
     public void scroll()
     {
-        transform.position = new Vector3(278, 500, 150);
+        transform.position = new Vector3(278, 400, 150);
         moving = true;
     }
 }

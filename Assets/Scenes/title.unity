@@ -1108,7 +1108,7 @@ MonoBehaviour:
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
-  m_Antialiasing: 0
+  m_Antialiasing: 3
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
@@ -1142,10 +1142,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::titleCamera
   endPos: {x: 284, y: 284, z: 77.2}
   startPos: {x: 284, y: 284, z: -400}
-  camSpeed: 3
-  duration: 2
-  timeElapsed: 0
-  camAccel: 0.1
+  camSpeed: 50
+  camAccel: 10
 --- !u!1 &1651782745
 GameObject:
   m_ObjectHideFlags: 0
@@ -1466,7 +1464,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: -16.039, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 278.38693, y: 612.3}
+  m_AnchoredPosition: {x: 278.38693, y: 442}
   m_SizeDelta: {x: 918, y: 428.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1750518871
