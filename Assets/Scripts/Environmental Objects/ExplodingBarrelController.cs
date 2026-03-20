@@ -23,6 +23,15 @@ public class ExplodingBarrelController : MonoBehaviour, IEnvironmentalObject
             {
                 enemy.ExplosionHit((enemy.transform.position - transform.position).normalized); // You can customize the hit parameters as needed
             }
+            else{
+                Rigidbody hitRb = nearbyObject.GetComponent<Rigidbody>();
+                if (hitRb != null){
+                    Vector3 hitDirection = (hitRb.transform.position - transform.position);
+                    float hitDistance = hitDirection.magnitude;
+                    hitDirection = hitDirection.normalized;
+                    hitRb.AddForce(hitDirection * 10f, ForceMode.Impulse);
+                }
+            }
         }
     }
 
