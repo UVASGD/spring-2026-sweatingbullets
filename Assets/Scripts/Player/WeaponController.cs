@@ -61,8 +61,7 @@ namespace Player
         public event Action OnWeaponFired;
         public event Action<ShotResolutionContext> OnWeaponShotResolved;
 
-        private GameObject
-            _regularSmokeSpawnPoint; // I have this instead of a separate gameobject so that smoke spawn will always be dependent on the aim position and hip fire position
+        private Vector3 _originalSmokeLocalPos; // cached hip-fire local position of smoke spawn point
 
         [Header("Audio")] public AudioClip dryFireSound;
         public AudioClip cockingSound;
@@ -83,11 +82,7 @@ namespace Player
                 Math.Abs(
                     HipFirePosition.localPosition.z - aimPosition.localPosition.z -
                     0.5f /*included some offset for customization*/);
-            _regularSmokeSpawnPoint = new GameObject();
-            _regularSmokeSpawnPoint.transform.SetParent(transform);
-            _regularSmokeSpawnPoint.transform.SetPositionAndRotation(smokeSpawnPoint.position,
-                smokeSpawnPoint.rotation); // caching smoke spawn in hip fire position
-
+            _originalSmokeLocalPos = smokeSpawnPoint.localPosition; // cache hip-fire local position
         }
 
         private void Update()
@@ -107,8 +102,10 @@ namespace Player
             {
                 transform.localPosition = Vector3.MoveTowards(transform.localPosition, HipFirePosition.localPosition,
                     aimSpeed * Time.deltaTime);
-                smokeSpawnPoint.localPosition = Vector3.MoveTowards(smokeSpawnPoint.localPosition,
-                    _regularSmokeSpawnPoint.transform.localPosition, aimSpeed * Time.deltaTime);
+                // Snap smoke spawn back to its original local offset — the parent's movement
+                // handles the smooth world-space transition, so interpolating here would cause
+                // the spawn point to drift in the wrong direction.
+                smokeSpawnPoint.localPosition = _originalSmokeLocalPos;
             }
         }
 
