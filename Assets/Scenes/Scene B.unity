@@ -909,6 +909,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f94bade685d04340b9e5b8d25b30765, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  deathCam: {fileID: 0}
+  movementScript: {fileID: 0}
 --- !u!114 &6817638360683979281
 MonoBehaviour:
   m_ObjectHideFlags: 0
