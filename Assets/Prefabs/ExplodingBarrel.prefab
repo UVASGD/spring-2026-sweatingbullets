@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 5808970586276839221}
   - component: {fileID: 2581607363888240938}
   - component: {fileID: 1074467827403030708}
-  - component: {fileID: 2765637106000258741}
   m_Layer: 0
   m_Name: Cylinder
   m_TagString: Untagged
@@ -130,33 +129,6 @@ MonoBehaviour:
   explodeFXPrefab: {fileID: 1557801892235533581, guid: a425c00b369773242a822f19fa68b632, type: 3}
   explosionRadius: 5
   drawGizmos: 1
---- !u!54 &2765637106000258741
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1533110087317321544}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &8755620045545428116
 GameObject:
   m_ObjectHideFlags: 0
