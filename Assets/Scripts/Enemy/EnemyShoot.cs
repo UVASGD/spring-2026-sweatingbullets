@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using Player;
 namespace Enemy
 {
     public class EnemyShoot : MonoBehaviour
@@ -19,9 +20,16 @@ namespace Enemy
         [SerializeField] private AudioClip fireSound;
 
         public float Range {get; set;}
+
         public float aimTime { get; set; }
 
         private bool _isPlayerHit = false;
+        private Transform player;
+
+        public void SetPlayer(Transform p)
+        {
+            player = p;
+        }
 
         public void FireWeapon() // aim delay will be built in here
         {
@@ -39,14 +47,31 @@ namespace Enemy
     
             // Raycast
             RaycastHit hit;
-            if (Physics.Raycast(enemyGunRaycastOrigin.position, enemyGunRaycastOrigin.forward, out hit, Range))
+
+            Vector3 origin = enemyGunRaycastOrigin.position;
+            Vector3 dir = (player.position - origin).normalized; 
+
+            Debug.DrawRay(origin, dir * Range, Color.green, 1f); 
+
+            if (Physics.Raycast(origin, dir, out hit, Range, ~0, QueryTriggerInteraction.Collide))
             {
-                PlayerController player = hit.transform.GetComponent<PlayerController>();
-                if (player != null)
+                Debug.Log($"The enemy has hit {hit.collider.name} at distance {hit.distance}");
+
+                PlayerController pc = hit.collider.GetComponentInParent<PlayerController>();
+                if (pc != null)
                 {
-                    player.Hit(hit.point, enemyGunRaycastOrigin.forward);
+                    pc.Hit(hit.point, dir);
                 }
             }
+            else
+            {
+                Debug.Log("The enemy hit nothing");
+            }
+
+
+            Debug.Log($"Range={Range} origin={enemyGunRaycastOrigin.position} forward={enemyGunRaycastOrigin.forward}");
+            Debug.DrawRay(enemyGunRaycastOrigin.position, enemyGunRaycastOrigin.forward * Mathf.Max(Range, 0.1f), Color.red, 1f);
+            Debug.Log($"Distance to player = {Vector3.Distance(enemyGunRaycastOrigin.position, player.transform.position)}");
         }
     }
 }

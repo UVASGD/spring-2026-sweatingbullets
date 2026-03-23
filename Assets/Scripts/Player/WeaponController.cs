@@ -218,6 +218,13 @@ namespace Player
                     enemy.Hit(hit.point, shotDirection);
                     hitEnemy = true;
                 }
+                else{
+                    //Check if an environmental object is hit
+                    IEnvironmentalObject environmentalObject = hit.transform.GetComponentInChildren<IEnvironmentalObject>();
+                    if (environmentalObject != null){
+                        environmentalObject.HitByPlayer();
+                    }
+                }
             }
 
             OnWeaponShotResolved?.Invoke(new ShotResolutionContext(
