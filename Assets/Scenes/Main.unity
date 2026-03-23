@@ -706,6 +706,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_ActionId: 38f133d1-47a2-4acd-a068-32dd44ff90ea
+--- !u!4 &1317500976 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6316446067052004383, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+  m_PrefabInstance: {fileID: 5851341813854994995}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1406424794
 GameObject:
   m_ObjectHideFlags: 0
@@ -854,6 +859,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeathScreenUI
   pauseMenuScript: {fileID: 0}
+--- !u!4 &1906516924 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7821414477966033594, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+  m_PrefabInstance: {fileID: 5851341813854994995}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2016020058
 GameObject:
   m_ObjectHideFlags: 0
@@ -1093,10 +1103,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7f3c8d9e2b4f1a6c5d8e9f0a1b2c3d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.NervesVisualEffectsController
-  postProcessVolume: {fileID: 0}
-  cameraTransform: {fileID: 0}
-  gunModelTransform: {fileID: 0}
-  nervesManager: {fileID: 0}
+  postProcessVolume: {fileID: 832575518}
+  cameraTransform: {fileID: 1317500976}
+  gunModelTransform: {fileID: 1906516924}
+  nervesManager: {fileID: 6817638360683979296}
   maxVignetteIntensity: 0.95
   maxDesaturation: -50
   maxNervesTint: {r: 0.5377358, g: 0.5377358, b: 0.5377358, a: 1}
@@ -1243,7 +1253,7 @@ MonoBehaviour:
   crouchingDecreaseRate: 15
   recoveryDelay: 1.5
   weaponController: {fileID: 781492504}
-  characterController: {fileID: 0}
+  characterController: {fileID: 5851341813854994996}
 --- !u!114 &6817638360683979306
 MonoBehaviour:
   m_ObjectHideFlags: 0
