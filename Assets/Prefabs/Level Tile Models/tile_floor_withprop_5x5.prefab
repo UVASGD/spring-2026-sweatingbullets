@@ -48,10 +48,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8391222552659086748, guid: bc6061403ca032642834c6e139736ec1, type: 3}
-      propertyPath: m_TagString
-      value: Ground
-      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: bc6061403ca032642834c6e139736ec1, type: 3}
       propertyPath: m_Name
       value: tile_floor_withprop_5x5
@@ -63,9 +59,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: bc6061403ca032642834c6e139736ec1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 134516094359527176}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: bc6061403ca032642834c6e139736ec1, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 127957008231449392}
     - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: bc6061403ca032642834c6e139736ec1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8402619996622915848}
@@ -126,21 +119,6 @@ MonoBehaviour:
   east: {fileID: 0}
   south: {fileID: 0}
   west: {fileID: 0}
---- !u!114 &127957008231449392
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1131964105003378098}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de2a64774eaa1404382651d6f92e8bf5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpawnProps
-  propInfos:
-  - spawnChance: 0.25
-    propPrefab: {fileID: 8755620045545428116, guid: 5ed7c74cb2c1c7043a2039627d837010, type: 3}
 --- !u!1 &8626777328408058118 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8416272007918961125, guid: bc6061403ca032642834c6e139736ec1, type: 3}

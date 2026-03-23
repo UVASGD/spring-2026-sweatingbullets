@@ -52,10 +52,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: tile_floor_5x5
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
-      propertyPath: m_TagString
-      value: Ground
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -66,9 +62,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1701254216324282086}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: -8405887990219816684}
   m_SourcePrefab: {fileID: 100100000, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
 --- !u!1 &2791576317991417124 stripped
 GameObject:
@@ -115,18 +108,3 @@ MonoBehaviour:
   east: {fileID: 0}
   south: {fileID: 0}
   west: {fileID: 0}
---- !u!114 &-8405887990219816684
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2791576317991417124}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de2a64774eaa1404382651d6f92e8bf5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpawnProps
-  propInfos:
-  - spawnChance: 0.25
-    propPrefab: {fileID: 8755620045545428116, guid: 5ed7c74cb2c1c7043a2039627d837010, type: 3}
