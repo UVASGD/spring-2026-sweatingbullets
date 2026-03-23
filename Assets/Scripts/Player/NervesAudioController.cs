@@ -4,30 +4,21 @@ using UnityEngine.InputSystem;
 namespace Player
 {
     /// <summary>
-    /// Controls nerves-based audio effects: breathing and heartbeat that scale with nerves level.
+    /// Controls nerves-based audio effects: breathing/heartbeat that scales with nerves level.
     /// Press 'N' to trigger demo mode (3s ramp up, 2.5s hold, 5s fade out).
     /// </summary>
     public class NervesAudioController : MonoBehaviour
     {
         [Header("References")]
-        [SerializeField] private AudioSource heartbeatAudioSource;
-        [SerializeField] private AudioSource breathingAudioSource;
-
-        [SerializeField] private NervesManager nervesManager;
+        [SerializeField] private AudioSource audioSource;
 
         [Header("Audio Clips")]
-        [SerializeField] private AudioClip heartbeatAudioClip;
-        [SerializeField] private AudioClip breathingAudioClip;
+        [SerializeField] private AudioClip nervesAudioClip;
 
-        [Header("Heartbeat Audio Settings")]
+        [Header("Audio Settings")]
         [SerializeField] private float maxVolume = 1f;
         [SerializeField] private float minPitch = 0.8f;
         [SerializeField] private float maxPitch = 1.5f;
-
-        [Header("Breathing Audio Settings")]
-        [SerializeField] private float breathingMaxVolume = 1f;
-        [SerializeField] private float breathingMinPitch = 0.85f;
-        [SerializeField] private float breathingMaxPitch = 1.3f;
 
         [Header("Timing")]
         [SerializeField] private float demoIntensifyDuration = 4f;
@@ -52,55 +43,26 @@ namespace Player
             if (intensityCurve.length == 2 && intensityCurve[0].value == 0 && intensityCurve[1].value == 1)
                 intensityCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-            if (nervesManager != null)
+            // Find or create AudioSource if not assigned
+            if (audioSource == null)
+                audioSource = GetComponent<AudioSource>();
+
+            if (audioSource == null)
             {
-                isDemoActive = false;
-                if (_demoCoroutine != null)
-                {
-                    StopCoroutine(_demoCoroutine);
-                    _demoCoroutine = null;
-                }
+                audioSource = gameObject.AddComponent<AudioSource>();
+                Debug.LogWarning("No AudioSource assigned, created one automatically.");
             }
 
-            // Find or create heartbeat AudioSource if not assigned
-            if (heartbeatAudioSource == null)
-                heartbeatAudioSource = GetComponent<AudioSource>();
-
-            if (heartbeatAudioSource == null)
+            // Configure AudioSource for looping
+            if (nervesAudioClip != null)
             {
-                heartbeatAudioSource = gameObject.AddComponent<AudioSource>();
-                Debug.LogWarning("No AudioSource assigned for heartbeat, created one automatically.");
-            }
-
-            // Configure heartbeat AudioSource for looping
-            if (heartbeatAudioClip != null)
-            {
-                heartbeatAudioSource.clip = heartbeatAudioClip;
-                heartbeatAudioSource.loop = true;
-                heartbeatAudioSource.playOnAwake = false;
+                audioSource.clip = nervesAudioClip;
+                audioSource.loop = true;
+                audioSource.playOnAwake = false;
             }
             else
             {
-                Debug.LogWarning("No heartbeatAudioClip assigned.");
-            }
-
-            // Find or create breathing AudioSource if not assigned
-            if (breathingAudioSource == null)
-            {
-                breathingAudioSource = gameObject.AddComponent<AudioSource>();
-                Debug.LogWarning("No breathing AudioSource assigned, created one automatically.");
-            }
-
-            // Configure breathing AudioSource for looping
-            if (breathingAudioClip != null)
-            {
-                breathingAudioSource.clip = breathingAudioClip;
-                breathingAudioSource.loop = true;
-                breathingAudioSource.playOnAwake = false;
-            }
-            else
-            {
-                Debug.LogWarning("No breathingAudioClip assigned.");
+                Debug.LogWarning("No nervesAudioClip assigned.");
             }
 
             // Initialize with clean state (silent)
@@ -133,57 +95,40 @@ namespace Player
 
         private void UpdateAudio(bool force = false)
         {
+            if (audioSource == null) return;
+
             // Convert nerves level (0-100) to normalized (0-1) and apply curve for smooth transitions
             float rawNormalizedNerves = _visualNervesLevel / 100f;
             float normalizedNerves = intensityCurve.Evaluate(rawNormalizedNerves);
 
-            // --- Heartbeat ---
-            if (heartbeatAudioSource != null)
-            {
-                heartbeatAudioSource.volume = normalizedNerves * maxVolume;
-                heartbeatAudioSource.pitch = Mathf.Lerp(minPitch, maxPitch, normalizedNerves);
+            // Apply volume scaling
+            audioSource.volume = normalizedNerves * maxVolume;
 
-                if (normalizedNerves > 0.001f)
-                {
-                    if (!heartbeatAudioSource.isPlaying && heartbeatAudioClip != null)
-                        heartbeatAudioSource.Play();
-                }
-                else
-                {
-                    if (heartbeatAudioSource.isPlaying)
-                        heartbeatAudioSource.Stop();
-                }
+            // Apply pitch scaling (lerp between min and max pitch)
+            audioSource.pitch = Mathf.Lerp(minPitch, maxPitch, normalizedNerves);
+
+            // Start/stop audio based on whether there's any intensity
+            if (normalizedNerves > 0.001f)
+            {
+                if (!audioSource.isPlaying && nervesAudioClip != null)
+                    audioSource.Play();
             }
-
-            // --- Breathing ---
-            if (breathingAudioSource != null)
+            else
             {
-                breathingAudioSource.volume = normalizedNerves * breathingMaxVolume;
-                breathingAudioSource.pitch = Mathf.Lerp(breathingMinPitch, breathingMaxPitch, normalizedNerves);
-
-                if (normalizedNerves > 0.001f)
-                {
-                    if (!breathingAudioSource.isPlaying && breathingAudioClip != null)
-                        breathingAudioSource.Play();
-                }
-                else
-                {
-                    if (breathingAudioSource.isPlaying)
-                        breathingAudioSource.Stop();
-                }
+                if (audioSource.isPlaying)
+                    audioSource.Stop();
             }
 
             // Debug logging at extreme states for troubleshooting
             if (showDebugInfo && (normalizedNerves > 0.99f || normalizedNerves < 0.01f))
             {
                 string state = normalizedNerves < 0.01f ? "IDLE" : "MAX";
-                Debug.Log($"[NervesAudio] {state} | Level: {_visualNervesLevel:F4} | Heartbeat Vol: {(heartbeatAudioSource != null ? heartbeatAudioSource.volume : 0f):F2} | Breathing Vol: {(breathingAudioSource != null ? breathingAudioSource.volume : 0f):F2}");
+                Debug.Log($"[NervesAudio] {state} | Level: {_visualNervesLevel:F4} | Vol: {audioSource.volume:F2} | Pitch: {audioSource.pitch:F2}");
             }
         }
 
         private void HandleDebugInput()
         {
-            if (nervesManager != null) return;
             if (Keyboard.current == null) return;
             var key = Keyboard.current[debugToggleKeyName] as UnityEngine.InputSystem.Controls.KeyControl;
             if (key != null && key.wasPressedThisFrame)
@@ -263,11 +208,11 @@ namespace Player
         {
             if (showDebugInfo)
             {
-                GUILayout.BeginArea(new Rect(10, 200, 350, 130));
+                GUILayout.BeginArea(new Rect(10, 200, 350, 100));
                 GUILayout.Label($"[Audio] Nerves: {_currentNervesLevel:F1}");
                 GUILayout.Label($"[Audio] Visual: {_visualNervesLevel:F1}");
-                GUILayout.Label($"[Audio] Heartbeat Vol: {(heartbeatAudioSource != null ? heartbeatAudioSource.volume : 0f):F2} | Pitch: {(heartbeatAudioSource != null ? heartbeatAudioSource.pitch : 0f):F2}");
-                GUILayout.Label($"[Audio] Breathing  Vol: {(breathingAudioSource != null ? breathingAudioSource.volume : 0f):F2} | Pitch: {(breathingAudioSource != null ? breathingAudioSource.pitch : 0f):F2}");
+                GUILayout.Label($"[Audio] Volume: {(audioSource != null ? audioSource.volume : 0f):F2}");
+                GUILayout.Label($"[Audio] Pitch: {(audioSource != null ? audioSource.pitch : 0f):F2}");
                 GUILayout.Label($"[Audio] Demo (Press '{debugToggleKeyName}'): {(isDemoActive ? "ACTIVE" : "OFF")}");
                 GUILayout.EndArea();
             }

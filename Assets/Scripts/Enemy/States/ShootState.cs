@@ -35,7 +35,7 @@ namespace Enemy.States
         {
             // continuously look at the player while shooting
             LookAtPlayer();
-            //Debug.Log(timer.Elapsed + " " + RequestedExit);
+            Debug.Log(timer.Elapsed + " " + RequestedExit);
             if (!_hasFired && timer.Elapsed >= _aimTime) // is aiming pause over?
             {
                 _shooter.FireWeapon();

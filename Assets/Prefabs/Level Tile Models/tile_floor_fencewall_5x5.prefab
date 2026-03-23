@@ -48,6 +48,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -8391222552659086748, guid: 2d5db011812576741939d481f78c8513, type: 3}
+      propertyPath: m_TagString
+      value: Ground
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 2d5db011812576741939d481f78c8513, type: 3}
       propertyPath: m_Name
       value: tile_floor_fencewall_5x5
@@ -59,6 +63,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 2d5db011812576741939d481f78c8513, type: 3}
       insertIndex: -1
       addedObject: {fileID: -816812793231181121}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 2d5db011812576741939d481f78c8513, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -927913662391986804}
     - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: 2d5db011812576741939d481f78c8513, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2271502747348950182}
@@ -143,3 +150,18 @@ MonoBehaviour:
   east: {fileID: 0}
   south: {fileID: 0}
   west: {fileID: 0}
+--- !u!114 &-927913662391986804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5739090365111621719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de2a64774eaa1404382651d6f92e8bf5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpawnProps
+  propInfos:
+  - spawnChance: 0.25
+    propPrefab: {fileID: 8755620045545428116, guid: 5ed7c74cb2c1c7043a2039627d837010, type: 3}
