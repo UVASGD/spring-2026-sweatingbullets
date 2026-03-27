@@ -263,7 +263,13 @@ MonoBehaviour:
   enableFootstepSounds: 1
   footstepTriggeringMode: 0
   stepTiming: 0.15
-  footstepSoundSet: []
+  footstepSoundSet:
+  - profileTriggerType: 0
+    _Materials: []
+    _physicMaterials: []
+    _Layers: []
+    footstepClips:
+    - {fileID: 8300000, guid: b73d02b75a60b4630884f279da48ca5e, type: 3}
   enableHeadbob: 1
   headbobSpeed: 3
   headbobPower: 2
@@ -1193,9 +1199,9 @@ MonoBehaviour:
   playerCamera: {fileID: 3297080643034497048}
   aimPosition: {fileID: 9043841449791035828}
   HipFirePosition: {fileID: 2584255897656643834}
-  dryFireSound: {fileID: 0}
-  cockingSound: {fileID: 0}
-  fireSound: {fileID: 0}
+  dryFireSound: {fileID: 8300000, guid: 8c9665b84c6624ce5a767fd89517b070, type: 3}
+  cockingSound: {fileID: 8300000, guid: 7a16d8d9742a742a48f4b64389818274, type: 3}
+  fireSound: {fileID: 8300000, guid: 4e2508e1663fd41eea0e4c2404919a55, type: 3}
   aimSpeed: 5
   range: 100
   canFireWeapon: 0

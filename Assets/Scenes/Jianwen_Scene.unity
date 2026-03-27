@@ -894,6 +894,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  _currentNervesLevel: 0
 --- !u!82 &6817638360683979284 stripped
 AudioSource:
   m_CorrespondingSourceObject: {fileID: 2540897844497172266, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
@@ -921,7 +922,7 @@ MonoBehaviour:
   transitionSpeed: 8
   showDebugInfo: 0
   debugToggleKeyName: n
-  isDemoActive: 0
+  isDemoActive: 1
   intensityCurve:
     serializedVersion: 2
     m_Curve:
