@@ -7,13 +7,24 @@ namespace Player
     {
         [SerializeField] private DeathCameraController deathCam;
         [SerializeField] private MonoBehaviour movementScript;
+        [SerializeField] private GameObject gunActual;
+        [SerializeField] private GameObject gunViewmodel;
 
         private Rigidbody _rb;
         private bool _isDead;
+        private bool _hasGun;
+        private int _bulletCount;
+
+        public bool HasGun => _hasGun;
+        public int BulletCount => _bulletCount;
 
         void Start()
         {
             _rb = GetComponent<Rigidbody>();
+            CacheGunReferences();
+            _hasGun = false;
+            _bulletCount = 0;
+            UpdateGunVisuals();
         }
 
         public void Hit(Vector3 hitPoint, Vector3 hitDirection)
@@ -54,6 +65,77 @@ namespace Player
             _rb.AddTorque(transform.right * 1f, ForceMode.Impulse);
 
             yield return null;
+        }
+
+        public void GiveGun()
+        {
+            if (_hasGun)
+            {
+                return;
+            }
+
+            _hasGun = true;
+            UpdateGunVisuals();
+        }
+
+        public void AddAmmo(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            _bulletCount += amount;
+        }
+
+        public bool TryConsumeBullet()
+        {
+            if (!_hasGun || _bulletCount <= 0)
+            {
+                return false;
+            }
+
+            _bulletCount--;
+            return true;
+        }
+
+        private void CacheGunReferences()
+        {
+            if (gunActual == null)
+            {
+                gunActual = FindChildGameObject("gun_actual");
+            }
+
+            if (gunViewmodel == null)
+            {
+                gunViewmodel = FindChildGameObject("gun_viewmodel");
+            }
+        }
+
+        private GameObject FindChildGameObject(string childName)
+        {
+            foreach (Transform child in GetComponentsInChildren<Transform>(true))
+            {
+                if (child != transform && child.name == childName)
+                {
+                    return child.gameObject;
+                }
+            }
+
+            return null;
+        }
+
+        private void UpdateGunVisuals()
+        {
+            if (gunActual != null)
+            {
+                gunActual.SetActive(_hasGun);
+            }
+
+            if (gunViewmodel != null)
+            {
+                gunViewmodel.SetActive(_hasGun);
+            }
         }
     }
 }

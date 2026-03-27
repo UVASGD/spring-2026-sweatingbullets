@@ -542,6 +542,14 @@ MonoBehaviour:
   enemy: {fileID: 57577454695695748, guid: a16ac3888d58b474390bd9894ce9eb9d, type: 3}
   spawnPoints:
   - {fileID: 2016020059}
+  gunPickupPrefab: {fileID: 0}
+  ammoPickupPrefab: {fileID: 0}
+  ammoPickupCount: 3
+  bulletsPerAmmoPickup: 1
+  minDistanceFromPlayer: 7
+  minDistanceFromEnemySpawn: 6
+  pickupGroundProbeHeight: 10
+  pickupSpawnYOffset: 0.25
 --- !u!114 &794702990
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1089,8 +1097,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f94bade685d04340b9e5b8d25b30765, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  deathCam: {fileID: 92063000}
-  movementScript: {fileID: 5851341813854994996}
+  deathCam: {fileID: 0}
+  movementScript: {fileID: 0}
+  gunActual: {fileID: 0}
+  gunViewmodel: {fileID: 0}
 --- !u!114 &6817638360683979281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1106,7 +1116,7 @@ MonoBehaviour:
   postProcessVolume: {fileID: 832575518}
   cameraTransform: {fileID: 1317500976}
   gunModelTransform: {fileID: 1906516924}
-  nervesManager: {fileID: 6817638360683979296}
+  nervesManager: {fileID: 0}
   maxVignetteIntensity: 0.95
   maxDesaturation: -50
   maxNervesTint: {r: 0.5377358, g: 0.5377358, b: 0.5377358, a: 1}
@@ -1164,9 +1174,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player.NervesAudioController
   heartbeatAudioSource: {fileID: 0}
   breathingAudioSource: {fileID: 0}
-  nervesManager: {fileID: 6817638360683979296}
-  heartbeatAudioClip: {fileID: 8300000, guid: de2d6a6448e63401b82dcbdf1b3896ff, type: 3}
-  breathingAudioClip: {fileID: 8300000, guid: c62380bfcde164429bda5fc4be8f3c83, type: 3}
+  nervesManager: {fileID: 0}
+  heartbeatAudioClip: {fileID: 0}
+  breathingAudioClip: {fileID: 0}
   maxVolume: 1
   minPitch: 0.6
   maxPitch: 2.5

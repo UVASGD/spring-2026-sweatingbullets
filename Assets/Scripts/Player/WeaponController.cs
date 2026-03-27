@@ -1,9 +1,6 @@
 using System;
-using NUnit.Framework.Constraints;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 using Enemy;
 
 namespace Player
@@ -71,13 +68,24 @@ namespace Player
         public float aimSpeed = 25f;
         public float range = 100f;
         private bool _isHammerCocked = false;
+        private PlayerController _playerController;
 
         public bool
             canFireWeapon =
                 false; // modified by event OnStateExit() in the HammerPull state in the Animator for the player's gun. Script called "Pulled.cs"
 
+        private void Awake()
+        {
+            _playerController = GetComponentInParent<PlayerController>();
+        }
+
         private void Start()
         {
+            if (_playerController == null)
+            {
+                _playerController = GetComponentInParent<PlayerController>();
+            }
+
             // Making the smoke look like it's coming from the viewmodel when aiming
             _hipToAimZOffset =
                 Math.Abs(
@@ -160,15 +168,24 @@ namespace Player
 
         private void FireWeapon(InputAction.CallbackContext context)
         {
+            if (!PlayerHasGun())
+            {
+                return;
+            }
+
             if (!_isHammerCocked)
             {
-                print("can't fire");
-                if (weaponAudio != null && dryFireSound != null) // play click sound when dry firing
-                    weaponAudio.PlayOneShot(dryFireSound);
+                PlayDryFire();
                 return;
             }
 
             if (!canFireWeapon) return;
+            if (_playerController == null || !_playerController.TryConsumeBullet())
+            {
+                PlayDryFire();
+                ResetHammerState();
+                return;
+            }
 
             // Fire
             if (gunAnimator != null)
@@ -232,13 +249,16 @@ namespace Player
                 hitDistance));
             print("fired");
             OnWeaponFired?.Invoke();
-            _isHammerCocked = false;
-            canFireWeapon = false;
-            gunAnimator.SetBool(HammerPullBool, _isHammerCocked);
+            ResetHammerState();
         }
 
         private void PullHammer(InputAction.CallbackContext context)
         {
+            if (!PlayerHasGun() || gunAnimator == null)
+            {
+                return;
+            }
+
             // Don't allow pulling hammer if it's already cocked or firing
             if (_isHammerCocked || gunAnimator.GetCurrentAnimatorStateInfo(0).IsName("Fire")) return;
             // cock hammer
@@ -251,6 +271,30 @@ namespace Player
             // Apparently this function will get called bc I put an animation event inside HammerPull??
         {
             canFireWeapon = true;
+        }
+
+        private bool PlayerHasGun()
+        {
+            return _playerController != null && _playerController.HasGun;
+        }
+
+        private void PlayDryFire()
+        {
+            if (weaponAudio != null && dryFireSound != null)
+            {
+                weaponAudio.PlayOneShot(dryFireSound);
+            }
+        }
+
+        private void ResetHammerState()
+        {
+            _isHammerCocked = false;
+            canFireWeapon = false;
+
+            if (gunAnimator != null)
+            {
+                gunAnimator.SetBool(HammerPullBool, false);
+            }
         }
     }
 }
