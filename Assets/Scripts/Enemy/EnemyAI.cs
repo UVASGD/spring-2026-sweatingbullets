@@ -38,6 +38,12 @@ namespace Enemy
         public void Init(GameObject p)
         {
             player = p;
+            var shoot = weapon.GetComponent<Enemy.EnemyShoot>();
+            if (shoot != null)
+            {
+                shoot.Range = weaponRange;
+                shoot.SetPlayer(player.transform);
+            }
             _rb = GetComponent<Rigidbody>();
             _stateMachine = new StateMachine<EnemyState, StateEvent>();
             _agent = GetComponent<NavMeshAgent>();

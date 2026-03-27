@@ -16,6 +16,8 @@ namespace Player
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private Transform gunModelTransform;
 
+        [SerializeField] private NervesManager nervesManager;
+
         [Header("Effect Intensities")]
         [SerializeField] private float maxVignetteIntensity = 0.95f;
         [SerializeField] private float maxDesaturation = -50f;
@@ -49,6 +51,7 @@ namespace Player
         private Coroutine _demoCoroutine;
         private Vector3 _originalCameraPosition;
         private Vector3 _originalGunPosition;
+        private Vector3 _gunShakeOffset;
         private float _shakeTime = 0f;
 
         private void Start()
@@ -56,6 +59,16 @@ namespace Player
             // Ensure we have a smooth ease-in-out curve instead of linear
             if (intensityCurve.length == 2 && intensityCurve[0].value == 0 && intensityCurve[1].value == 1)
                 intensityCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+            if (nervesManager != null)
+            {
+                isDemoActive = false;
+                if (_demoCoroutine != null)
+                {
+                    StopCoroutine(_demoCoroutine);
+                    _demoCoroutine = null;
+                }
+            }
 
             // Find the Volume component (fallback to search if not assigned)
             if (postProcessVolume == null)
@@ -214,10 +227,13 @@ namespace Player
                 }
             }
 
-            // 2. Gun Shake
+            // 2. Gun Shake (applied as additive offset so it doesn't override WeaponController ADS movement)
             if (gunModelTransform != null)
             {
                 float gunShakeIntensity = intensityMultiplier * maxGunShakeIntensity;
+
+                // Remove previous shake offset
+                gunModelTransform.localPosition -= _gunShakeOffset;
 
                 if (gunShakeIntensity > 0.001f)
                 {
@@ -227,17 +243,21 @@ namespace Player
                     float shakeY = (Mathf.PerlinNoise(0f, _shakeTime + offset) - 0.5f) * 2f * gunShakeIntensity;
                     float shakeZ = (Mathf.PerlinNoise(_shakeTime + offset, _shakeTime + offset) - 0.5f) * 2f * gunShakeIntensity * 0.5f;
 
-                    gunModelTransform.localPosition = _originalGunPosition + new Vector3(shakeX, shakeY, shakeZ);
+                    _gunShakeOffset = new Vector3(shakeX, shakeY, shakeZ);
                 }
                 else
                 {
-                    gunModelTransform.localPosition = _originalGunPosition;
+                    _gunShakeOffset = Vector3.zero;
                 }
+
+                // Apply new shake offset on top of current position
+                gunModelTransform.localPosition += _gunShakeOffset;
             }
         }
 
         private void HandleDebugInput()
         {
+            if (nervesManager != null) return;
             if (Keyboard.current == null) return;
             var key = Keyboard.current[debugToggleKeyName] as UnityEngine.InputSystem.Controls.KeyControl;
             if (key != null && key.wasPressedThisFrame)

@@ -3,7 +3,9 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - GunViewModel
+  - Ground
   layers:
   - Default
   - TransparentFX
@@ -13,7 +15,8 @@ TagManager:
   - UI
   - Viewmodel
   - Actual_Gun
-  - 
+  - EnemyNearMiss
+  - Ground
   - 
   - 
   - 
