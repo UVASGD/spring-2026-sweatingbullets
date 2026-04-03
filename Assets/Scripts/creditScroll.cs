@@ -11,8 +11,8 @@ public class creditScroll : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
-        transform.position = new Vector3(1000, 500, 150);
+        
+        transform.position = new Vector3(1000, 500, 1000);
     }
 
     // Update is called once per frame
@@ -20,6 +20,7 @@ public class creditScroll : MonoBehaviour
     {
         if (moving)
         {
+            
             transform.position = Vector3.MoveTowards(transform.position, endPos, 50.0f * Time.deltaTime);
         }
     }
