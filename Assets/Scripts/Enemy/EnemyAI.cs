@@ -1,4 +1,5 @@
 using Enemy.States;
+using Player;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.AI;
@@ -30,27 +31,61 @@ namespace Enemy
         [SerializeField] private float detectionDistance = 100f;
         [SerializeField, Range(0, 360)] private float viewAngle = 120f;
 
+        [Header("Hearing")]
+        [SerializeField] private float hearingRange = 20f;
+        [SerializeField] private float gunshotHearingRange = 50f;
+
         public bool isDead;
+
+        private PlayerNoiseEmitter _noiseEmitter;
+        private Vector3 _lastHeardPosition;
+        private InvestigateState _investigateState;
         
         public void Init(GameObject p)
         {
             player = p;
+            _noiseEmitter = player.GetComponent<PlayerNoiseEmitter>();
+            var shoot = weapon.GetComponent<Enemy.EnemyShoot>();
+            if (shoot != null)
+            {
+                shoot.Range = weaponRange;
+                shoot.SetPlayer(player.transform);
+            }
             _rb = GetComponent<Rigidbody>();
             _stateMachine = new StateMachine<EnemyState, StateEvent>();
             _agent = GetComponent<NavMeshAgent>();
 
             // Add states
+            _investigateState = new InvestigateState(false, this);
             _stateMachine.AddState(EnemyState.Patrol, new PatrolState(false, this));
             _stateMachine.AddState(EnemyState.Follow, new FollowState(false, this, player.transform));
             _stateMachine.AddState(EnemyState.Shoot, new ShootState(true, this, aimTime, weaponRange));
             _stateMachine.AddState(EnemyState.FollowUpToShoot, new FollowUpToShootState(true, this, player.transform, strafeDistance,5.0f));
+            _stateMachine.AddState(EnemyState.Investigate, _investigateState);
             _stateMachine.AddState(EnemyState.Dead, new DeathState(this));
 
             // --- Condition-based transitions ---
+
+            // Patrol: see player → Follow, hear player → Investigate
             _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Patrol, EnemyState.Follow,
                 (transition) => CanSeePlayer())
             );
 
+            _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Patrol, EnemyState.Investigate,
+                (transition) => CanHearPlayer() && !CanSeePlayer(),
+                onTransition: (transition) => _investigateState.SetTargetPosition(_lastHeardPosition))
+            );
+
+            // Investigate: see player → Follow, finished → Patrol, hear new noise → restart investigate
+            _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Investigate, EnemyState.Follow,
+                (transition) => CanSeePlayer())
+            );
+
+            _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Investigate, EnemyState.Patrol,
+                (transition) => _investigateState.IsFinished)
+            );
+
+            // Follow and combat transitions (unchanged)
             _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Follow, EnemyState.Shoot,
                 (transition) => PlayerInRange() && CanSeePlayer())
             );
@@ -64,9 +99,9 @@ namespace Enemy
             );
 
             _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.FollowUpToShoot, EnemyState.Shoot,
-                (transition) => PlayerInRange() && CanSeePlayer()) 
+                (transition) => PlayerInRange() && CanSeePlayer())
             );
-            
+
             _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.FollowUpToShoot, EnemyState.Follow,
                 (transition) => !PlayerInRange() && CanSeePlayer()
             ));
@@ -89,15 +124,18 @@ namespace Enemy
 
             _stateMachine.AddTriggerTransition(StateEvent.Died,
                 new Transition<EnemyState>(EnemyState.Patrol, EnemyState.Dead, forceInstantly: true));
-            
+
             _stateMachine.AddTriggerTransition(StateEvent.Died,
                 new Transition<EnemyState>(EnemyState.Follow, EnemyState.Dead, forceInstantly: true));
-            
+
             _stateMachine.AddTriggerTransition(StateEvent.Died,
                 new Transition<EnemyState>(EnemyState.Shoot, EnemyState.Dead, forceInstantly: true));
-            
+
             _stateMachine.AddTriggerTransition(StateEvent.Died,
                 new Transition<EnemyState>(EnemyState.FollowUpToShoot, EnemyState.Dead, forceInstantly: true));
+
+            _stateMachine.AddTriggerTransition(StateEvent.Died,
+                new Transition<EnemyState>(EnemyState.Investigate, EnemyState.Dead, forceInstantly: true));
 
 
             _stateMachine.SetStartState(EnemyState.Patrol);
@@ -135,7 +173,30 @@ namespace Enemy
             if (isDead) return; // Already dead
 
             _stateMachine.Trigger(StateEvent.Died);
-            // Additional death logic could go here
+            Die();
+        }
+
+        public void ExplosionHit(Vector3 hitDirection)
+        {
+            // Apply physics hit
+            _rb.isKinematic = false; 
+            _rb.useGravity = true;
+            _rb.constraints = RigidbodyConstraints.None;
+            _rb.AddForce(hitDirection * 15f, ForceMode.Impulse);
+            //_rb.AddTorque(Random.insideUnitSphere * 10f, ForceMode.Impulse);
+
+            if (isDead) return; // Already dead
+
+            _stateMachine.Trigger(StateEvent.Died);
+            Die();
+        }
+
+        private void Die(){
+            isDead = true;
+            // Disable NavMeshAgent and other components as needed
+            _agent.enabled = false;
+            weapon.SetActive(false);
+            // Additional death logic (e.g., play animation, drop loot) could go here
         }
 
         private bool CanSeePlayer()
@@ -168,6 +229,28 @@ namespace Enemy
             }
 
             return true;
+        }
+
+        private bool CanHearPlayer()
+        {
+            if (player == null || _noiseEmitter == null) return false;
+
+            float noise = _noiseEmitter.NoiseLevel;
+            if (noise <= 0f) return false;
+
+            float distance = Vector3.Distance(transform.position, player.transform.position);
+            float effectiveRange = _noiseEmitter.LastNoiseType == NoiseType.Gunshot
+                ? gunshotHearingRange
+                : hearingRange;
+
+            // Scale range by noise intensity
+            if (distance <= effectiveRange * noise)
+            {
+                _lastHeardPosition = player.transform.position;
+                return true;
+            }
+
+            return false;
         }
 
         private bool PlayerInRange()

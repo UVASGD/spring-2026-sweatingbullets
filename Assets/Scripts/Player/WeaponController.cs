@@ -10,6 +10,32 @@ namespace Player
 {
     public class WeaponController : MonoBehaviour
     {
+        public readonly struct ShotResolutionContext
+        {
+            public ShotResolutionContext(
+                Vector3 origin,
+                Vector3 direction,
+                float range,
+                bool hitEnemy,
+                bool hitSomething,
+                float hitDistance)
+            {
+                Origin = origin;
+                Direction = direction;
+                Range = range;
+                HitEnemy = hitEnemy;
+                HitSomething = hitSomething;
+                HitDistance = hitDistance;
+            }
+
+            public Vector3 Origin { get; }
+            public Vector3 Direction { get; }
+            public float Range { get; }
+            public bool HitEnemy { get; }
+            public bool HitSomething { get; }
+            public float HitDistance { get; }
+        }
+
         [Header("Input References")] public InputActionReference fireAction;
         public InputActionReference hammerPullAction;
         public InputActionReference aimDownSightsAction;
@@ -30,8 +56,13 @@ namespace Player
         private bool _isAiming = false;
         private float _hipToAimZOffset;
 
-        private GameObject
-            _regularSmokeSpawnPoint; // I have this instead of a separate gameobject so that smoke spawn will always be dependent on the aim position and hip fire position
+        public bool IsAiming => _isAiming;
+
+        public event Action OnWeaponFired;
+        public event Action<ShotResolutionContext> OnWeaponShotResolved;
+
+        private Vector3
+            _originalSmokeLocalPos; // cached hip-fire local position of smoke spawn point
 
         [Header("Audio")] public AudioClip dryFireSound;
         public AudioClip cockingSound;
@@ -52,19 +83,16 @@ namespace Player
                 Math.Abs(
                     HipFirePosition.localPosition.z - aimPosition.localPosition.z -
                     0.5f /*included some offset for customization*/);
-            _regularSmokeSpawnPoint = new GameObject();
-            _regularSmokeSpawnPoint.transform.SetParent(transform);
-            _regularSmokeSpawnPoint.transform.SetPositionAndRotation(smokeSpawnPoint.position,
-                smokeSpawnPoint.rotation); // caching smoke spawn in hip fire position
+            _originalSmokeLocalPos = smokeSpawnPoint.localPosition; // cache hip-fire local position
 
         }
 
         private void Update()
         {
             // aiming button held
-            if (_isAiming && transform.position != aimPosition.position)
+            if (_isAiming && transform.localPosition != aimPosition.localPosition)
             {
-                transform.position = Vector3.MoveTowards(transform.position, aimPosition.position,
+                transform.localPosition = Vector3.MoveTowards(transform.localPosition, aimPosition.localPosition,
                     aimSpeed * Time.deltaTime);
                 // why is localposition used here and regular position is used in the next if statement? Don't ask me. Because it works that way. lol
                 smokeSpawnPoint.localPosition = Vector3.MoveTowards(smokeSpawnPoint.localPosition,
@@ -72,12 +100,11 @@ namespace Player
             }
 
             // aiming button let go
-            if (!_isAiming && transform.position != HipFirePosition.position)
+            if (!_isAiming && transform.localPosition != HipFirePosition.localPosition)
             {
-                transform.position = Vector3.MoveTowards(transform.position, HipFirePosition.position,
+                transform.localPosition = Vector3.MoveTowards(transform.localPosition, HipFirePosition.localPosition,
                     aimSpeed * Time.deltaTime);
-                smokeSpawnPoint.position = Vector3.MoveTowards(smokeSpawnPoint.position,
-                    _regularSmokeSpawnPoint.transform.position, aimSpeed * Time.deltaTime);
+                smokeSpawnPoint.localPosition = _originalSmokeLocalPos;
             }
         }
 
@@ -99,8 +126,13 @@ namespace Player
             {
                 aimDownSightsAction.action.Enable();
                 aimDownSightsAction.action.performed +=
-                    ctx => _isAiming = true; // lambda function called ctx that sets the bool isAiming
-                aimDownSightsAction.action.canceled += ctx => _isAiming = false;
+                    ctx => { _isAiming = true; Debug.Log("WeaponController: ADS performed, _isAiming = true"); };
+                aimDownSightsAction.action.canceled +=
+                    ctx => { _isAiming = false; Debug.Log("WeaponController: ADS canceled, _isAiming = false"); };
+            }
+            else
+            {
+                Debug.LogWarning("WeaponController: aimDownSightsAction is null!");
             }
         }
 
@@ -123,6 +155,8 @@ namespace Player
                 aimDownSightsAction.action.Disable();
             }
         }
+
+
 
         private void FireWeapon(InputAction.CallbackContext context)
         {
@@ -154,21 +188,50 @@ namespace Player
 
             // Create raycast + shot
             if (weaponAudio != null && fireSound != null) weaponAudio.PlayOneShot(fireSound);
+            Vector3 shotOrigin = playerCamera.transform.position;
+            Vector3 shotDirection = playerCamera.transform.forward;
+            bool hitEnemy = false;
+            bool hitSomething = false;
+            float hitDistance = range;
             RaycastHit hit;
 
-            if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out hit, range))
+            if (Physics.Raycast(
+                    shotOrigin,
+                    shotDirection,
+                    out hit,
+                    range,
+                    Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore))
             {
-                Debug.Log("Hit: " + hit.transform.name);
+                hitSomething = true;
+                hitDistance = hit.distance;
+                // Debug.Log("Hit: " + hit.transform.name);
 
                 // Check if the object we hit has the EnemyHealth script
-                EnemyAI enemy = hit.transform.GetComponent<EnemyAI>();
+                EnemyAI enemy = hit.transform.GetComponentInParent<EnemyAI>();
                 if (enemy != null)
                 {
-                    enemy.Hit(hit.point, playerCamera.transform.forward);
+                    enemy.Hit(hit.point, shotDirection);
+                    hitEnemy = true;
+                }
+                else{
+                    //Check if an environmental object is hit
+                    IEnvironmentalObject environmentalObject = hit.transform.GetComponentInChildren<IEnvironmentalObject>();
+                    if (environmentalObject != null){
+                        environmentalObject.HitByPlayer();
+                    }
                 }
             }
 
+            OnWeaponShotResolved?.Invoke(new ShotResolutionContext(
+                shotOrigin,
+                shotDirection,
+                range,
+                hitEnemy,
+                hitSomething,
+                hitDistance));
             print("fired");
+            OnWeaponFired?.Invoke();
             _isHammerCocked = false;
             canFireWeapon = false;
             gunAnimator.SetBool(HammerPullBool, _isHammerCocked);
