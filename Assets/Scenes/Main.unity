@@ -1037,6 +1037,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 745122718}
     - target: {fileID: 4107762182159228181, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: nervesManager
+      value: 
+      objectReference: {fileID: 6817638360683979296}
+    - target: {fileID: 4107762182159228181, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: maxTriggerDelay
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4107762182159228181, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       propertyPath: hammerPullAction
       value: 
       objectReference: {fileID: 327656246}
