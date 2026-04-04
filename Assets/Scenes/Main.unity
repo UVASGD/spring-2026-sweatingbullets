@@ -972,6 +972,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1811012090805449005, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: Sensitivity
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1811012090805449005, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: FOVKickAmount
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1811012090805449005, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: enableStaminaSystem
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1811012090805449005, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: FOVSensitivityMultiplier
+      value: 0.103
+      objectReference: {fileID: 0}
     - target: {fileID: 2026146257986547427, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       propertyPath: m_LocalPosition.x
       value: -8.118795e-13
@@ -1011,6 +1027,10 @@ PrefabInstance:
     - target: {fileID: 2026146257986547427, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4107762182159228181, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: aimSpeed
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 4107762182159228181, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       propertyPath: fireAction
@@ -1063,6 +1083,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6817638360683979318}
+    - targetCorrespondingSourceObject: {fileID: 7153238028321174612, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5851341813854994998}
   m_SourcePrefab: {fileID: 100100000, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
 --- !u!114 &5851341813854994996 stripped
 MonoBehaviour:
@@ -1075,6 +1098,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8acb2371b9f0ce3429e7935fa5efe263, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &5851341813854994997 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7153238028321174612, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+  m_PrefabInstance: {fileID: 5851341813854994995}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5851341813854994998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5851341813854994997}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6af67d8c3fad82a47be6f96be6f6cf99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraGunplayEffects
+  weaponController: {fileID: 781492504}
+  playerCamera: {fileID: 785695879}
+  gunTransform: {fileID: 1906516924}
+  nervesManager: {fileID: 6817638360683979296}
+  adsFOV: 55
+  fovLerpSpeed: 10
+  recoilPitch: 4
+  pitchVariation: 0.27
+  recoilYawBias: 0.51
+  recoilYawRandom: 0.33
+  snapDuration: 0.05
+  overcorrectDuration: 0.1
+  overcorrectFraction: 0.15
+  settleDuration: 0.3
+  microShakeIntensity: 1.5
+  microShakeFrequency: 70.2
+  gunRecoilMultiplier: 2.5
+  gunKickbackPitch: 4
+  adsSwayAmount: 0.3
+  adsSwayNervesMultiplier: 3
+  adsSwaySpeed: 1.5
 --- !u!1 &6817638360683979277 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
@@ -1220,7 +1281,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player.NervesManager
   visualController: {fileID: 6817638360683979281}
   audioController: {fileID: 6817638360683979289}
-  currentNerves: 0
   totalInputsDelta: 0
   recoveryDelta: 0
   showDebugInfo: 1
@@ -1237,7 +1297,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.ADSNervesInput
   maxContribution: 30
-  delayBeforeIncrease: 3
+  delayBeforeIncrease: 0.5
   increaseRate: 5
   weaponController: {fileID: 781492504}
 --- !u!114 &6817638360683979304
