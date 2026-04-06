@@ -1,5 +1,6 @@
-using UnityEngine;
 using System.Collections;
+using SUPERCharacter;
+using UnityEngine;
 
 namespace Player
 {
@@ -9,10 +10,20 @@ namespace Player
         [SerializeField] private MonoBehaviour movementScript;
         [SerializeField] private GameObject gunActual;
         [SerializeField] private GameObject gunViewmodel;
+        [Header("Interaction Crosshair")]
+        [SerializeField] private Color crosshairIdleColor = Color.white;
+        [SerializeField] private Color crosshairInteractableColor = Color.green;
+        [SerializeField] private float crosshairLineLength = 8f;
+        [SerializeField] private float crosshairThickness = 2f;
+        [SerializeField] private float crosshairGap = 4f;
 
         private Rigidbody _rb;
+        private SUPERCharacterAIO _characterController;
+        private Camera _playerCamera;
+        private Texture2D _crosshairTexture;
         private bool _isDead;
         private bool _hasGun;
+        private bool _isLookingAtInteractable;
         private int _bulletCount;
 
         public bool HasGun => _hasGun;
@@ -21,10 +32,17 @@ namespace Player
         void Start()
         {
             _rb = GetComponent<Rigidbody>();
+            _characterController = GetComponent<SUPERCharacterAIO>();
             CacheGunReferences();
             _hasGun = false;
             _bulletCount = 0;
             UpdateGunVisuals();
+            EnsureCrosshairTexture();
+        }
+
+        private void LateUpdate()
+        {
+            UpdateInteractionTargetState();
         }
 
         public void Hit(Vector3 hitPoint, Vector3 hitDirection)
@@ -136,6 +154,102 @@ namespace Player
             {
                 gunViewmodel.SetActive(_hasGun);
             }
+        }
+
+        private void UpdateInteractionCrosshair()
+        {
+            if (!ShouldShowInteractionCrosshair())
+            {
+                return;
+            }
+
+            EnsureCrosshairTexture();
+            if (_crosshairTexture == null)
+            {
+                return;
+            }
+
+            Color originalColor = GUI.color;
+            GUI.color = _isLookingAtInteractable ? crosshairInteractableColor : crosshairIdleColor;
+
+            float centerX = Screen.width * 0.5f;
+            float centerY = Screen.height * 0.5f;
+            float halfThickness = crosshairThickness * 0.5f;
+
+            GUI.DrawTexture(new Rect(centerX - halfThickness, centerY - crosshairGap - crosshairLineLength, crosshairThickness, crosshairLineLength), _crosshairTexture);
+            GUI.DrawTexture(new Rect(centerX - halfThickness, centerY + crosshairGap, crosshairThickness, crosshairLineLength), _crosshairTexture);
+            GUI.DrawTexture(new Rect(centerX - crosshairGap - crosshairLineLength, centerY - halfThickness, crosshairLineLength, crosshairThickness), _crosshairTexture);
+            GUI.DrawTexture(new Rect(centerX + crosshairGap, centerY - halfThickness, crosshairLineLength, crosshairThickness), _crosshairTexture);
+
+            GUI.color = originalColor;
+        }
+
+        private void UpdateInteractionTargetState()
+        {
+            if (_characterController == null)
+            {
+                _characterController = GetComponent<SUPERCharacterAIO>();
+            }
+
+            if (_playerCamera == null && _characterController != null)
+            {
+                _playerCamera = _characterController.playerCamera;
+            }
+
+            if (!ShouldShowInteractionCrosshair() || _playerCamera == null || _characterController == null)
+            {
+                _isLookingAtInteractable = false;
+                return;
+            }
+
+            RaycastHit hit;
+            _isLookingAtInteractable = Physics.SphereCast(
+                _playerCamera.transform.position,
+                0.25f,
+                _playerCamera.transform.forward,
+                out hit,
+                _characterController.interactRange,
+                _characterController.interactableLayer,
+                QueryTriggerInteraction.Ignore) &&
+                hit.collider.GetComponent<IInteractable>() != null;
+        }
+
+        private bool ShouldShowInteractionCrosshair()
+        {
+            if (_isDead || _hasGun)
+            {
+                return false;
+            }
+
+            if (_characterController == null)
+            {
+                _characterController = GetComponent<SUPERCharacterAIO>();
+            }
+
+            if (_characterController == null)
+            {
+                return false;
+            }
+
+            return _characterController.cameraPerspective != PerspectiveModes._3rdPerson ||
+                   _characterController.showCrosshairIn3rdPerson;
+        }
+
+        private void EnsureCrosshairTexture()
+        {
+            if (_crosshairTexture != null)
+            {
+                return;
+            }
+
+            _crosshairTexture = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+            _crosshairTexture.SetPixel(0, 0, Color.white);
+            _crosshairTexture.Apply();
+        }
+
+        private void OnGUI()
+        {
+            UpdateInteractionCrosshair();
         }
     }
 }

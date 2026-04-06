@@ -166,10 +166,10 @@ MonoBehaviour:
   playerCamera: {fileID: 3297080643034497048}
   enableCameraControl: 1
   lockAndHideMouse: 1
-  autoGenerateCrosshair: 1
+  autoGenerateCrosshair: 0
   showCrosshairIn3rdPerson: 0
   drawPrimitiveUI: 1
-  crosshairSprite: {fileID: 0}
+  crosshairSprite: {fileID: 21300000, guid: 1cd876775e6966c4da5af74d9b53390d, type: 3}
   cameraPerspective: 0
   automaticallySwitchPerspective: 0
   perspectiveSwitchingKey: 0

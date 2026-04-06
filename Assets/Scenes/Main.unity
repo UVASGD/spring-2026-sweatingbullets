@@ -542,7 +542,7 @@ MonoBehaviour:
   enemy: {fileID: 57577454695695748, guid: a16ac3888d58b474390bd9894ce9eb9d, type: 3}
   spawnPoints:
   - {fileID: 2016020059}
-  gunPickupPrefab: {fileID: 0}
+  gunPickupPrefab: {fileID: 886342007907028130, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
   ammoPickupPrefab: {fileID: 0}
   ammoPickupCount: 3
   bulletsPerAmmoPickup: 1
@@ -1173,6 +1173,7 @@ MonoBehaviour:
   movementScript: {fileID: 0}
   gunActual: {fileID: 0}
   gunViewmodel: {fileID: 0}
+  interactionCrosshairObjectName: Crosshair
 --- !u!114 &6817638360683979281
 MonoBehaviour:
   m_ObjectHideFlags: 0
