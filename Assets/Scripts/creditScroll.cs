@@ -5,14 +5,13 @@ using UnityEngine;
 public class creditScroll : MonoBehaviour
 {
 
-    Vector3 endPos = new Vector3(278, 0, 150);
+    Vector3 endPos = new Vector3(278, 500, 150);
     bool moving = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
-    {
-        
-        transform.position = new Vector3(1000, 500, 1000);
+    {   
+        transform.position = new Vector3(278, -10, 150);
     }
 
     // Update is called once per frame
@@ -27,7 +26,7 @@ public class creditScroll : MonoBehaviour
 
     public void scroll()
     {
-        transform.position = new Vector3(278, 400, 150);
+        transform.position = new Vector3(278, -10, 150);
         moving = true;
     }
 }
