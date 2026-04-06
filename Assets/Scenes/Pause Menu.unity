@@ -531,6 +531,14 @@ MonoBehaviour:
   enemy: {fileID: 57577454695695748, guid: a16ac3888d58b474390bd9894ce9eb9d, type: 3}
   spawnPoints:
   - {fileID: 2016020059}
+  gunPickupPrefab: {fileID: 0}
+  ammoPickupPrefab: {fileID: 0}
+  ammoPickupCount: 3
+  bulletsPerAmmoPickup: 1
+  minDistanceFromPlayer: 7
+  minDistanceFromEnemySpawn: 6
+  pickupGroundProbeHeight: 10
+  pickupSpawnYOffset: 0.25
 --- !u!114 &794702990
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1036,8 +1044,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f94bade685d04340b9e5b8d25b30765, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  deathCam: {fileID: 0}
+  deathCam: {fileID: 92063000}
   movementScript: {fileID: 0}
+  gunActual: {fileID: 0}
+  gunViewmodel: {fileID: 0}
+  crosshairIdleColor: {r: 1, g: 1, b: 1, a: 1}
+  crosshairInteractableColor: {r: 0, g: 1, b: 0, a: 1}
+  crosshairLineLength: 8
+  crosshairThickness: 2
+  crosshairGap: 4
 --- !u!4 &6817638360683979287 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2026146257986547427, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
