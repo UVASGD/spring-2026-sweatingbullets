@@ -1173,6 +1173,8 @@ MonoBehaviour:
   movementScript: {fileID: 0}
   gunActual: {fileID: 0}
   gunViewmodel: {fileID: 0}
+  startWithGun: 0
+  startingBulletCount: 0
   crosshairIdleColor: {r: 1, g: 1, b: 1, a: 1}
   crosshairInteractableColor: {r: 0, g: 1, b: 0, a: 1}
   crosshairLineLength: 8
@@ -1319,7 +1321,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82210e598a5a1449e8d06cb23a6a4a1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.ADSNervesInput
-  maxContribution: 30
+  maxContribution: 100
   delayBeforeIncrease: 0.5
   increaseRate: 5
   weaponController: {fileID: 781492504}

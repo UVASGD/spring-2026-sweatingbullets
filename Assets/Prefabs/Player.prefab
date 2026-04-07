@@ -1196,6 +1196,13 @@ MonoBehaviour:
   dryFireSound: {fileID: 0}
   cockingSound: {fileID: 0}
   fireSound: {fileID: 0}
+  nervesManager: {fileID: 0}
+  maxTriggerDelay: 0.15
+  dropStartNerves: 10
+  dropCurveSteepness: 8
+  droppedGunPickupPrefab: {fileID: 886342007907028130, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
+  dropGroundProbeHeight: 10
+  dropSpawnYOffset: 0.25
   aimSpeed: 5
   range: 100
   canFireWeapon: 0

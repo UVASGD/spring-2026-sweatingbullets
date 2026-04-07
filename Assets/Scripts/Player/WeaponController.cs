@@ -75,6 +75,19 @@ namespace Player
         [Range(0f, 0.5f)]
         public float maxTriggerDelay = 0.15f;
 
+        [Header("Gun Drop (Nerves)")]
+        [Tooltip("No drop chance is applied below this nerves value.")]
+        [Range(0f, 100f)]
+        [SerializeField] private float dropStartNerves = 10f;
+        [Tooltip("Steepness of the sigmoid curve used for gun drop chance.")]
+        [SerializeField] private float dropCurveSteepness = 8f;
+        [Tooltip("Pickup prefab spawned when nerves cause the player to drop the gun.")]
+        [SerializeField] private GameObject droppedGunPickupPrefab;
+        [Tooltip("Height above the player used when probing the ground for a dropped gun pickup.")]
+        [SerializeField] private float dropGroundProbeHeight = 10f;
+        [Tooltip("Vertical offset applied after grounding the dropped gun pickup.")]
+        [SerializeField] private float dropSpawnYOffset = 0.25f;
+
         public float aimSpeed = 25f;
         public float range = 100f;
         private bool _isHammerCocked = false;
@@ -287,6 +300,7 @@ namespace Player
             print("fired");
             OnWeaponFired?.Invoke();
             ResetHammerState();
+            TryDropGunAfterShot();
         }
 
         private void PullHammer(InputAction.CallbackContext context)
@@ -332,6 +346,55 @@ namespace Player
             {
                 gunAnimator.SetBool(HammerPullBool, false);
             }
+        }
+
+        private void TryDropGunAfterShot()
+        {
+            if (_playerController == null || !_playerController.HasGun || nervesManager == null)
+            {
+                return;
+            }
+
+            float dropChance = EvaluateDropChance(nervesManager.currentNerves);
+            if (dropChance <= 0f || UnityEngine.Random.value > dropChance)
+            {
+                return;
+            }
+
+            _isFiring = false;
+            ResetHammerState();
+            _playerController.DropGun(droppedGunPickupPrefab, dropGroundProbeHeight, dropSpawnYOffset);
+        }
+
+        private float EvaluateDropChance(float nerves)
+        {
+            if (nerves < dropStartNerves)
+            {
+                return 0f;
+            }
+
+            if (nerves >= 100f)
+            {
+                return 1f;
+            }
+
+            float t = Mathf.InverseLerp(dropStartNerves, 100f, nerves);
+            float steepness = Mathf.Max(0.0001f, dropCurveSteepness);
+            float low = EvaluateLogistic(0f, steepness);
+            float high = EvaluateLogistic(1f, steepness);
+
+            if (Mathf.Approximately(low, high))
+            {
+                return t;
+            }
+
+            float value = EvaluateLogistic(t, steepness);
+            return Mathf.Clamp01((value - low) / (high - low));
+        }
+
+        private static float EvaluateLogistic(float t, float steepness)
+        {
+            return 1f / (1f + Mathf.Exp(-steepness * (t - 0.5f)));
         }
     }
 }
