@@ -9,7 +9,7 @@ namespace Player
     public class ADSNervesInput : NervesInput
     {
         [Header("ADS Settings")]
-        [SerializeField] private float delayBeforeIncrease = 3f;
+        [SerializeField] private float delayBeforeIncrease = 0.5f;
         [SerializeField] private float increaseRate = 5f;
         [SerializeField] private WeaponController weaponController;
 
