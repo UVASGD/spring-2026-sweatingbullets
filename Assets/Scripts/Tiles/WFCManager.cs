@@ -32,6 +32,9 @@ namespace Tiles
 
         public TileDefinition wallTileDefinition;
 
+        [Tooltip("Tile used to fill holes where WFC failed to place a tile")]
+        public TileDefinition fallbackTileDefinition;
+
         public List<ManualPlacement> mapFeatures;
         
         public NavMeshSurface navMeshSurface;
@@ -96,7 +99,7 @@ namespace Tiles
 
             print("WFC grid planning finished. Instantiating...");
             InstantiateGrid();
-            SurroundWithWalls();
+            // SurroundWithWalls();
             
             navMeshSurface.BuildNavMesh();
             
@@ -260,12 +263,18 @@ namespace Tiles
         {
             foreach (var kvp in grid)
             {
+                Vector3 worldPos = new Vector3(kvp.Key.x * tileSize, 0, kvp.Key.y * tileSize);
+
                 if (kvp.Value.possibleTiles.Count == 1)
                 {
                     var tile = kvp.Value.possibleTiles[0];
-                    Instantiate(tile.definition.prefab,
-                        new Vector3(kvp.Key.x * tileSize, 0, kvp.Key.y * tileSize),
+                    Instantiate(tile.definition.prefab, worldPos,
                         Quaternion.Euler(0, tile.rotationIndex * 90, 0), transform);
+                }
+                else if (fallbackTileDefinition != null)
+                {
+                    Instantiate(fallbackTileDefinition.prefab, worldPos,
+                        Quaternion.identity, transform);
                 }
             }
         }

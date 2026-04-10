@@ -534,6 +534,7 @@ MonoBehaviour:
   gridSizeY: 10
   tileSize: 5
   wallTileDefinition: {fileID: 11400000, guid: 2d57c45b875921949bba8301f9cd3491, type: 2}
+  fallbackTileDefinition: {fileID: 11400000, guid: 02fb13fe9dd2300418e80b24808d4149, type: 2}
   mapFeatures:
   - position: {x: 0, y: 4}
     tile: {fileID: 11400000, guid: fa77717a668013540a2a1636972a970b, type: 2}
@@ -1052,6 +1053,18 @@ PrefabInstance:
       propertyPath: aimDownSightsAction
       value: 
       objectReference: {fileID: 1164880211}
+    - target: {fileID: 4649089416464446967, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4649089416464446967, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 4649089416464446967, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.012
+      objectReference: {fileID: 0}
     - target: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       propertyPath: m_Name
       value: Player
@@ -1059,6 +1072,14 @@ PrefabInstance:
     - target: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       propertyPath: m_TagString
       value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 5462640525730672461, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6448804667816152934, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
