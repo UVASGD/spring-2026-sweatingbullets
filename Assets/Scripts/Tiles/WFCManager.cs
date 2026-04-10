@@ -32,8 +32,15 @@ namespace Tiles
 
         public TileDefinition wallTileDefinition;
 
-        [Tooltip("Tile used to fill holes where WFC failed to place a tile")]
-        public TileDefinition fallbackTileDefinition;
+        [Tooltip("Floor tile spawned under every grid cell")]
+        public GameObject floorTilePrefab;
+
+        [Tooltip("Impassable tile spawned outside the grid as scenery")]
+        public GameObject outsideTilePrefab;
+        public int outsideRadius = 3;
+
+        [Tooltip("Material using Custom/SandBlend shader — grid bounds set automatically")]
+        public Material sandBlendMaterial;
 
         public List<ManualPlacement> mapFeatures;
         
@@ -99,6 +106,8 @@ namespace Tiles
 
             print("WFC grid planning finished. Instantiating...");
             InstantiateGrid();
+            SpawnOutsideTiles();
+            UpdateSandBlendBounds();
             // SurroundWithWalls();
             
             navMeshSurface.BuildNavMesh();
@@ -107,6 +116,35 @@ namespace Tiles
             {
                 GameObject clone = Instantiate(enemy, t.position, t.rotation);
                 clone.GetComponent<EnemyAI>().Init(GameObject.FindWithTag("Player"));
+            }
+        }
+
+        void UpdateSandBlendBounds()
+        {
+            if (sandBlendMaterial == null) return;
+
+            float halfTile = tileSize * 0.5f;
+            sandBlendMaterial.SetFloat("_GridMinX", -halfTile);
+            sandBlendMaterial.SetFloat("_GridMinZ", -halfTile);
+            sandBlendMaterial.SetFloat("_GridMaxX", (gridSizeX - 1) * tileSize + halfTile);
+            sandBlendMaterial.SetFloat("_GridMaxZ", (gridSizeY - 1) * tileSize + halfTile);
+        }
+
+        void SpawnOutsideTiles()
+        {
+            if (outsideTilePrefab == null) return;
+
+            for (int x = -outsideRadius; x < gridSizeX + outsideRadius; x++)
+            {
+                for (int y = -outsideRadius; y < gridSizeY + outsideRadius; y++)
+                {
+                    if (x >= 0 && x < gridSizeX && y >= 0 && y < gridSizeY)
+                        continue;
+
+                    Instantiate(outsideTilePrefab,
+                        new Vector3(x * tileSize, 0, y * tileSize),
+                        outsideTilePrefab.transform.rotation, transform);
+                }
             }
         }
 
@@ -265,16 +303,17 @@ namespace Tiles
             {
                 Vector3 worldPos = new Vector3(kvp.Key.x * tileSize, 0, kvp.Key.y * tileSize);
 
+                if (floorTilePrefab != null)
+                {
+                    Instantiate(floorTilePrefab, worldPos + Vector3.up * 0.01f,
+                        floorTilePrefab.transform.rotation, transform);
+                }
+
                 if (kvp.Value.possibleTiles.Count == 1)
                 {
                     var tile = kvp.Value.possibleTiles[0];
                     Instantiate(tile.definition.prefab, worldPos,
-                        Quaternion.Euler(0, tile.rotationIndex * 90, 0), transform);
-                }
-                else if (fallbackTileDefinition != null)
-                {
-                    Instantiate(fallbackTileDefinition.prefab, worldPos,
-                        Quaternion.identity, transform);
+                        Quaternion.Euler(0, tile.rotationIndex * 90, 0) * tile.definition.prefab.transform.rotation, transform);
                 }
             }
         }

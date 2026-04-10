@@ -678,16 +678,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WFCManager
   allTileDefinitions:
-  - {fileID: 11400000, guid: 02fb13fe9dd2300418e80b24808d4149, type: 2}
   - {fileID: 11400000, guid: 8f5465d747267cc47ba6e49aded1ddcc, type: 2}
   - {fileID: 11400000, guid: 298da2f5fa3b6b645ac28a5082e3980b, type: 2}
   - {fileID: 11400000, guid: d6b5d5c490bd00548894dfcde62da703, type: 2}
   - {fileID: 11400000, guid: b4b7c455a23b7e247a4a67d4c3a6f4d7, type: 2}
+  - {fileID: 11400000, guid: 02fb13fe9dd2300418e80b24808d4149, type: 2}
   gridSizeX: 10
   gridSizeY: 10
   tileSize: 5
   wallTileDefinition: {fileID: 11400000, guid: 2d57c45b875921949bba8301f9cd3491, type: 2}
-  fallbackTileDefinition: {fileID: 11400000, guid: 02fb13fe9dd2300418e80b24808d4149, type: 2}
+  floorTilePrefab: {fileID: 2791576317991417124, guid: d02a7904be1e4484686a8c2b6f4d4941, type: 3}
+  outsideTilePrefab: {fileID: 2791576317991417124, guid: 8ecc964be1d1eb34ea2f6953799e693f, type: 3}
+  outsideRadius: 3
   mapFeatures:
   - position: {x: 0, y: 4}
     tile: {fileID: 11400000, guid: fa77717a668013540a2a1636972a970b, type: 2}

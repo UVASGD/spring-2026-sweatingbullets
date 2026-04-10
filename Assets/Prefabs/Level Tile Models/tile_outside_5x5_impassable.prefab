@@ -65,14 +65,6 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -7511558181221131132, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
-      propertyPath: m_Materials.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -7511558181221131132, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 756793e120dce5a4394a59f0596389b0, type: 2}
@@ -82,7 +74,7 @@ PrefabInstance:
       objectReference: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
     - target: {fileID: 919132149155446097, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
       propertyPath: m_Name
-      value: tile_floor_5x5
+      value: tile_outside_5x5_impassable
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
       propertyPath: m_TagString
@@ -100,7 +92,7 @@ PrefabInstance:
       addedObject: {fileID: -8405887990219816684}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1020875975791890748}
+      addedObject: {fileID: 2847635015667618802}
   m_SourcePrefab: {fileID: 100100000, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
 --- !u!1 &2791576317991417124 stripped
 GameObject:
@@ -140,7 +132,7 @@ MonoBehaviour:
   propInfos:
   - spawnChance: 0.25
     propPrefab: {fileID: 8755620045545428116, guid: 5ed7c74cb2c1c7043a2039627d837010, type: 3}
---- !u!65 &1020875975791890748
+--- !u!65 &2847635015667618802
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
