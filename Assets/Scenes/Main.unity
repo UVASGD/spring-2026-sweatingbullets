@@ -689,7 +689,8 @@ MonoBehaviour:
   wallTileDefinition: {fileID: 11400000, guid: 2d57c45b875921949bba8301f9cd3491, type: 2}
   floorTilePrefab: {fileID: 2791576317991417124, guid: d02a7904be1e4484686a8c2b6f4d4941, type: 3}
   outsideTilePrefab: {fileID: 2791576317991417124, guid: 8ecc964be1d1eb34ea2f6953799e693f, type: 3}
-  outsideRadius: 3
+  outsideRadius: 10
+  sandBlendMaterial: {fileID: 2100000, guid: 756793e120dce5a4394a59f0596389b0, type: 2}
   mapFeatures:
   - position: {x: 0, y: 4}
     tile: {fileID: 11400000, guid: fa77717a668013540a2a1636972a970b, type: 2}
