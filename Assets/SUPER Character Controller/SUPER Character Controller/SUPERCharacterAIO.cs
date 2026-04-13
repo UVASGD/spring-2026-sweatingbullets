@@ -1482,10 +1482,10 @@ public class SUPERCharacterAIO : MonoBehaviour{
         }
 
         if(cameraPerspective == PerspectiveModes._3rdPerson){
-            Collider[] cols = Physics.OverlapBox(transform.position + (transform.forward*(interactRange/2)), Vector3.one*(interactRange/2),transform.rotation,interactableLayer,QueryTriggerInteraction.Ignore);
+            Collider[] cols = Physics.OverlapBox(transform.position + (transform.forward*(interactRange/2)), Vector3.one*(interactRange/2),transform.rotation,interactableLayer,QueryTriggerInteraction.Collide);
             float lastColestDist = 100;
             foreach(Collider c in cols){
-                IInteractable i = c.GetComponent<IInteractable>();
+                IInteractable i = GetInteractableFromCollider(c);
                 if(i != null && i.CanInteract(playerController)){
                     float d = Vector3.Distance(transform.position, c.transform.position);
                     if(d<lastColestDist){
@@ -1497,14 +1497,27 @@ public class SUPERCharacterAIO : MonoBehaviour{
             return interactable != null;
         }
 
-        if(playerCamera != null && Physics.SphereCast(playerCamera.transform.position,0.25f,playerCamera.transform.forward,out RaycastHit h,interactRange,interactableLayer,QueryTriggerInteraction.Ignore)){
-            IInteractable candidate = h.collider.GetComponent<IInteractable>();
+        if(playerCamera != null && Physics.SphereCast(playerCamera.transform.position,0.25f,playerCamera.transform.forward,out RaycastHit h,interactRange,interactableLayer,QueryTriggerInteraction.Collide)){
+            IInteractable candidate = GetInteractableFromCollider(h.collider);
             if(candidate != null && candidate.CanInteract(playerController)){
                 interactable = candidate;
             }
         }
 
         return interactable != null;
+    }
+
+    IInteractable GetInteractableFromCollider(Collider collider){
+        if(collider == null){
+            return null;
+        }
+
+        IInteractable interactable = collider.GetComponent<IInteractable>();
+        if(interactable != null){
+            return interactable;
+        }
+
+        return collider.GetComponentInParent<IInteractable>();
     }
 
     public bool TryInteract(){

@@ -1207,7 +1207,7 @@ MonoBehaviour:
   demoIntensifyDuration: 4
   demoFadeDuration: 5
   transitionSpeed: 2
-  showDebugInfo: 1
+  showDebugInfo: 0
   debugToggleKeyName: n
   isDemoActive: 0
   intensityCurve:
@@ -1308,7 +1308,7 @@ MonoBehaviour:
   audioController: {fileID: 6817638360683979289}
   totalInputsDelta: 0
   recoveryDelta: 0
-  showDebugInfo: 1
+  showDebugInfo: 0
 --- !u!114 &6817638360683979297
 MonoBehaviour:
   m_ObjectHideFlags: 0
