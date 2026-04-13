@@ -956,10 +956,10 @@ public class SUPERCharacterAIO : MonoBehaviour{
         //to act as a normal and point buffer.
         currentGroundInfo.groundFromSweep = null;
 
-        currentGroundInfo.groundFromSweep = Physics.SphereCastAll(transform.position,capsule.radius-0.001f,Vector3.down,((capsule.height/2))-(capsule.radius/2),whatIsGround);
-        currentGroundInfo.isInContactWithGround = Physics.Raycast(transform.position, Vector3.down, out currentGroundInfo.groundFromRay, (capsule.height/2)+0.25f,whatIsGround);
+        currentGroundInfo.groundFromSweep = Physics.SphereCastAll(transform.position,capsule.radius-0.001f,Vector3.down,((capsule.height/2))-(capsule.radius/2),whatIsGround,QueryTriggerInteraction.Ignore);
+        currentGroundInfo.isInContactWithGround = Physics.Raycast(transform.position, Vector3.down, out currentGroundInfo.groundFromRay, (capsule.height/2)+0.25f,whatIsGround,QueryTriggerInteraction.Ignore);
         
-        if(Jumped && (Physics.Raycast(transform.position, Vector3.down, (capsule.height/2)+0.1f,whatIsGround)||Physics.CheckSphere(transform.position-(Vector3.up*((capsule.height/2)-(capsule.radius-0.05f))),capsule.radius,whatIsGround)) &&Time.time>(jumpBlankingPeriod+0.1f)){
+        if(Jumped && (Physics.Raycast(transform.position, Vector3.down, (capsule.height/2)+0.1f,whatIsGround,QueryTriggerInteraction.Ignore)||Physics.CheckSphere(transform.position-(Vector3.up*((capsule.height/2)-(capsule.radius-0.05f))),capsule.radius,whatIsGround,QueryTriggerInteraction.Ignore)) &&Time.time>(jumpBlankingPeriod+0.1f)){
             Jumped=false;
         }
         
@@ -1000,9 +1000,9 @@ public class SUPERCharacterAIO : MonoBehaviour{
                 currentGroundInfo.groundAngleMultiplier = ((currentGroundInfo.groundAngle))/90;
            //
             currentGroundInfo.groundTag = currentGroundInfo.isInContactWithGround ? currentGroundInfo.groundFromRay.transform.tag : string.Empty;
-            if( Physics.Raycast(transform.position+(Vector3.down*((capsule.height*0.5f)-0.1f)), InputDir,out currentGroundInfo.stairCheck_RiserCheck,capsule.radius+0.1f,whatIsGround)){
-                if(Physics.Raycast(currentGroundInfo.stairCheck_RiserCheck.point+(currentGroundInfo.stairCheck_RiserCheck.normal*-0.05f)+Vector3.up,Vector3.down,out currentGroundInfo.stairCheck_HeightCheck,1.1f)){
-                    if(!Physics.Raycast(transform.position+(Vector3.down*((capsule.height*0.5f)-maxStairRise))+InputDir*(capsule.radius-0.05f), InputDir,0.2f,whatIsGround) ){
+            if( Physics.Raycast(transform.position+(Vector3.down*((capsule.height*0.5f)-0.1f)), InputDir,out currentGroundInfo.stairCheck_RiserCheck,capsule.radius+0.1f,whatIsGround,QueryTriggerInteraction.Ignore)){
+                if(Physics.Raycast(currentGroundInfo.stairCheck_RiserCheck.point+(currentGroundInfo.stairCheck_RiserCheck.normal*-0.05f)+Vector3.up,Vector3.down,out currentGroundInfo.stairCheck_HeightCheck,1.1f,whatIsGround,QueryTriggerInteraction.Ignore)){
+                    if(!Physics.Raycast(transform.position+(Vector3.down*((capsule.height*0.5f)-maxStairRise))+InputDir*(capsule.radius-0.05f), InputDir,0.2f,whatIsGround,QueryTriggerInteraction.Ignore) ){
                         if(!isIdle &&  currentGroundInfo.stairCheck_HeightCheck.point.y> (currentGroundInfo.stairCheck_RiserCheck.point.y+0.025f) /* Vector3.Angle(currentGroundInfo.groundFromRay.normal, Vector3.up)<5 */ && Vector3.Angle(currentGroundInfo.groundNormal_Averaged, currentGroundInfo.stairCheck_RiserCheck.normal)>0.5f){
                             p_Rigidbody.position -= Vector3.up*-0.1f;
                             currentGroundInfo.potentialStair = true;
@@ -1189,7 +1189,7 @@ public class SUPERCharacterAIO : MonoBehaviour{
     }
     bool OverheadCheck(){    //Returns true when there is no obstruction.
         bool result = false;
-        if(Physics.Raycast(transform.position,Vector3.up,standingHeight - (capsule.height/2),whatIsGround)){result = true;}
+        if(Physics.Raycast(transform.position,Vector3.up,standingHeight - (capsule.height/2),whatIsGround,QueryTriggerInteraction.Ignore)){result = true;}
         return !result;
     }
     Vector3 Average(List<Vector3> vectors){

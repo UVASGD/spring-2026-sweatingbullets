@@ -1384,8 +1384,8 @@ MonoBehaviour:
   movementScript: {fileID: 0}
   gunActual: {fileID: 0}
   gunViewmodel: {fileID: 0}
-  startWithGun: 0
-  startingBulletCount: 0
+  startWithGun: 1
+  startingBulletCount: 10
   crosshairIdleColor: {r: 1, g: 1, b: 1, a: 1}
   crosshairInteractableColor: {r: 0, g: 1, b: 0, a: 1}
   crosshairLineLength: 8

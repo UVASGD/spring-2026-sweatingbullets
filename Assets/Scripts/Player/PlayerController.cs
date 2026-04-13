@@ -108,8 +108,8 @@ namespace Player
             _hasGun = false;
             UpdateGunVisuals();
 
-            Vector3 groundedDropPosition = ResolveDroppedGunPosition(groundProbeHeight, spawnYOffset);
-            Vector3 spawnPosition = groundedDropPosition + Vector3.up * Mathf.Max(0.5f, spawnYOffset + 0.5f);
+            Vector3 groundPoint = ResolveDroppedGunPosition(groundProbeHeight);
+            Vector3 spawnPosition = groundPoint + Vector3.up * Mathf.Max(0.5f, spawnYOffset + 0.5f);
             GameObject pickupObject = pickupPrefab != null
                 ? Instantiate(pickupPrefab, spawnPosition, Quaternion.identity)
                 : CreateFallbackGunPickup(spawnPosition);
@@ -119,7 +119,7 @@ namespace Player
                 pickupObject.AddComponent<GunPickup>();
             }
 
-            EnableDroppedPickupPhysics(pickupObject);
+            EnableDroppedPickupPhysics(pickupObject, groundPoint);
         }
 
         public void AddAmmo(int amount)
@@ -182,7 +182,7 @@ namespace Player
             }
         }
 
-        private Vector3 ResolveDroppedGunPosition(float groundProbeHeight, float spawnYOffset)
+        private Vector3 ResolveDroppedGunPosition(float groundProbeHeight)
         {
             float probeHeight = Mathf.Max(0.1f, groundProbeHeight);
             Vector3 rayOrigin = transform.position + Vector3.up * probeHeight;
@@ -195,10 +195,10 @@ namespace Player
                     Physics.DefaultRaycastLayers,
                     QueryTriggerInteraction.Ignore))
             {
-                return hit.point + Vector3.up * spawnYOffset;
+                return hit.point;
             }
 
-            return transform.position + Vector3.up * spawnYOffset;
+            return transform.position;
         }
 
         private GameObject CreateFallbackGunPickup(Vector3 position)
@@ -217,7 +217,7 @@ namespace Player
             return pickupObject;
         }
 
-        private void EnableDroppedPickupPhysics(GameObject pickupObject)
+        private void EnableDroppedPickupPhysics(GameObject pickupObject, Vector3 groundPoint)
         {
             if (pickupObject == null)
             {
@@ -230,12 +230,75 @@ namespace Player
                 pickupRigidbody = pickupObject.AddComponent<Rigidbody>();
             }
 
+            if (!HasSolidCollider(pickupObject))
+            {
+                SnapPickupToGround(pickupObject, groundPoint);
+                pickupRigidbody.isKinematic = true;
+                pickupRigidbody.useGravity = false;
+                pickupRigidbody.linearVelocity = Vector3.zero;
+                pickupRigidbody.angularVelocity = Vector3.zero;
+                return;
+            }
+
             pickupRigidbody.isKinematic = false;
             pickupRigidbody.useGravity = true;
             pickupRigidbody.linearVelocity = Vector3.zero;
             pickupRigidbody.angularVelocity = Vector3.zero;
             pickupRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
             pickupRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        }
+
+        private void SnapPickupToGround(GameObject pickupObject, Vector3 groundPoint)
+        {
+            Bounds? pickupBounds = GetPickupBounds(pickupObject);
+            if (!pickupBounds.HasValue)
+            {
+                pickupObject.transform.position = groundPoint;
+                return;
+            }
+
+            Vector3 position = pickupObject.transform.position;
+            position += Vector3.up * (groundPoint.y - pickupBounds.Value.min.y);
+            pickupObject.transform.position = position;
+        }
+
+        private Bounds? GetPickupBounds(GameObject pickupObject)
+        {
+            bool hasBounds = false;
+            Bounds combinedBounds = default;
+
+            foreach (Collider pickupCollider in pickupObject.GetComponentsInChildren<Collider>())
+            {
+                if (pickupCollider == null || !pickupCollider.enabled)
+                {
+                    continue;
+                }
+
+                if (!hasBounds)
+                {
+                    combinedBounds = pickupCollider.bounds;
+                    hasBounds = true;
+                }
+                else
+                {
+                    combinedBounds.Encapsulate(pickupCollider.bounds);
+                }
+            }
+
+            return hasBounds ? combinedBounds : null;
+        }
+
+        private bool HasSolidCollider(GameObject pickupObject)
+        {
+            foreach (Collider pickupCollider in pickupObject.GetComponentsInChildren<Collider>())
+            {
+                if (pickupCollider != null && pickupCollider.enabled && !pickupCollider.isTrigger)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void UpdateInteractionCrosshair()

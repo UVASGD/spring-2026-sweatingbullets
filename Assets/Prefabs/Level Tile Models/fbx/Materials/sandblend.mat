@@ -134,10 +134,10 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GridMaxX: 50
-    - _GridMaxZ: 50
-    - _GridMinX: 0
-    - _GridMinZ: 0
+    - _GridMaxX: 47.5
+    - _GridMaxZ: 47.5
+    - _GridMinX: -2.5
+    - _GridMinZ: -2.5
     - _MainSmoothness: 0.2
     - _Metallic: 0
     - _OcclusionStrength: 1
