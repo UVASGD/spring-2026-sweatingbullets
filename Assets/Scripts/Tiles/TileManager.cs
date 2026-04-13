@@ -32,7 +32,7 @@ namespace Tiles
         void Start()
         {
             GenerateGrid();
-            PlaceWalls();
+            // PlaceWalls();
         }
 
         void GenerateGrid()

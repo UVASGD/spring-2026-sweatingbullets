@@ -69,12 +69,18 @@ public class CameraGunplayEffects : MonoBehaviour
     [SerializeField] private float gunKickbackPitch = 4f;
 
     [Header("ADS Sway")]
+    [Tooltip("Vertical (pitch) sway amplitude in degrees")]
     [Range(0f, 2f)]
-    [SerializeField] private float adsSwayAmount = 0.3f;
+    [SerializeField] private float adsSwayVerticalAmount = 0.3f;
+    [Tooltip("Horizontal (yaw) sway amplitude in degrees")]
+    [Range(0f, 2f)]
+    [SerializeField] private float adsSwayHorizontalAmount = 0.3f;
     [Tooltip("Max sway multiplier at 100 nerves (1 = no extra sway)")]
-    [Range(1f, 5f)]
-    [SerializeField] private float adsSwayNervesMultiplier = 3f;
-    [Range(0.1f, 5f)]
+    [Range(1f, 10f)]
+    [SerializeField] private float adsSwayNervesMultiplier = 5f;
+    [Range(1f, 10f)]
+    [SerializeField] private float adsSwaySpeedNervesMultiplier = 5f;
+    [Range(0.1f, 3f)]
     [SerializeField] private float adsSwaySpeed = 1.5f;
 
     private float _defaultFOV;
@@ -279,12 +285,14 @@ public class CameraGunplayEffects : MonoBehaviour
         if (nervesManager != null)
             nervesNormalized = Mathf.Clamp01(nervesManager.currentNerves / 100f);
         float nervesScale = Mathf.Lerp(1f, adsSwayNervesMultiplier, nervesNormalized);
-        float sway = adsSwayAmount * nervesScale;
+        float verticalSway = adsSwayVerticalAmount * nervesScale;
+        
+        _swayTime += Time.deltaTime * nervesScale * adsSwaySpeed;
+        
+        float horizontalSway = adsSwayHorizontalAmount * nervesScale;
 
-        _swayTime += Time.deltaTime * adsSwaySpeed;
-
-        float swayX = Mathf.Sin(_swayTime * 1.0f) * sway;
-        float swayY = Mathf.Sin(_swayTime * 0.7f + 0.5f) * sway * 0.6f;
+        float swayX = Mathf.Sin(_swayTime * 2.0f) * verticalSway;
+        float swayY = Mathf.Sin(_swayTime * 1.0f) * horizontalSway;
 
         return new Vector3(swayX, swayY, 0f);
     }
