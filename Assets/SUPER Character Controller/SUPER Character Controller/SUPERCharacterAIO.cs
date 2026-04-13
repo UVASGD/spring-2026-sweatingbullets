@@ -1471,14 +1471,22 @@ public class SUPERCharacterAIO : MonoBehaviour{
     #endregion
 
     #region Interactables
-    public bool TryInteract(){
+    public bool TryGetCurrentInteractable(out IInteractable interactable){
+        return TryGetCurrentInteractable(GetOwningPlayerController(), out interactable);
+    }
+
+    bool TryGetCurrentInteractable(Player.PlayerController playerController, out IInteractable interactable){
+        interactable = null;
+        if(playerController == null){
+            return false;
+        }
+
         if(cameraPerspective == PerspectiveModes._3rdPerson){
             Collider[] cols = Physics.OverlapBox(transform.position + (transform.forward*(interactRange/2)), Vector3.one*(interactRange/2),transform.rotation,interactableLayer,QueryTriggerInteraction.Ignore);
-            IInteractable interactable = null;
             float lastColestDist = 100;
             foreach(Collider c in cols){
                 IInteractable i = c.GetComponent<IInteractable>();
-                if(i != null){
+                if(i != null && i.CanInteract(playerController)){
                     float d = Vector3.Distance(transform.position, c.transform.position);
                     if(d<lastColestDist){
                         lastColestDist = d;
@@ -1486,18 +1494,26 @@ public class SUPERCharacterAIO : MonoBehaviour{
                     }
                 }
             }
-            return ((interactable != null)? interactable.Interact() : false);
-            
-        }else{
-            RaycastHit h;
-            if(Physics.SphereCast(playerCamera.transform.position,0.25f,playerCamera.transform.forward,out h,interactRange,interactableLayer,QueryTriggerInteraction.Ignore)){
-                IInteractable i = h.collider.GetComponent<IInteractable>();
-                if(i!=null){
-                    return i.Interact();
-                }
+            return interactable != null;
+        }
+
+        if(playerCamera != null && Physics.SphereCast(playerCamera.transform.position,0.25f,playerCamera.transform.forward,out RaycastHit h,interactRange,interactableLayer,QueryTriggerInteraction.Ignore)){
+            IInteractable candidate = h.collider.GetComponent<IInteractable>();
+            if(candidate != null && candidate.CanInteract(playerController)){
+                interactable = candidate;
             }
         }
-        return false;
+
+        return interactable != null;
+    }
+
+    public bool TryInteract(){
+        Player.PlayerController playerController = GetOwningPlayerController();
+        return TryGetCurrentInteractable(playerController, out IInteractable interactable) && interactable.Interact(playerController);
+    }
+
+    Player.PlayerController GetOwningPlayerController(){
+        return GetComponent<Player.PlayerController>();
     }
     #endregion
 
@@ -1625,7 +1641,8 @@ public enum PauseModes{MakeKinematic, FreezeInPlace,BlockInputOnly}
 
 #region Interfaces
 public interface IInteractable{
-    bool Interact();
+    bool CanInteract(Player.PlayerController playerController);
+    bool Interact(Player.PlayerController playerController);
 }
 
 public interface ICollectable{

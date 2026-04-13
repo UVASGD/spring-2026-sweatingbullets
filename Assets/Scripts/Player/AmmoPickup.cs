@@ -12,16 +12,14 @@ namespace Player
             ammoAmount = Mathf.Max(1, amount);
         }
 
-        public bool Interact()
+        public bool CanInteract(PlayerController playerController)
         {
-            GameObject playerObject = GameObject.FindWithTag("Player");
-            if (playerObject == null)
-            {
-                return false;
-            }
+            return playerController != null;
+        }
 
-            PlayerController playerController = playerObject.GetComponent<PlayerController>();
-            if (playerController == null)
+        public bool Interact(PlayerController playerController)
+        {
+            if (!CanInteract(playerController))
             {
                 return false;
             }

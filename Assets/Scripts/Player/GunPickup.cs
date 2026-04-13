@@ -5,16 +5,14 @@ namespace Player
 {
     public class GunPickup : MonoBehaviour, IInteractable
     {
-        public bool Interact()
+        public bool CanInteract(PlayerController playerController)
         {
-            GameObject playerObject = GameObject.FindWithTag("Player");
-            if (playerObject == null)
-            {
-                return false;
-            }
+            return playerController != null && !playerController.HasGun;
+        }
 
-            PlayerController playerController = playerObject.GetComponent<PlayerController>();
-            if (playerController == null || playerController.HasGun)
+        public bool Interact(PlayerController playerController)
+        {
+            if (!CanInteract(playerController))
             {
                 return false;
             }

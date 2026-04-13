@@ -22,7 +22,6 @@ namespace Player
 
         private Rigidbody _rb;
         private SUPERCharacterAIO _characterController;
-        private Camera _playerCamera;
         private Texture2D _crosshairTexture;
         private bool _isDead;
         private bool _hasGun;
@@ -274,27 +273,13 @@ namespace Player
                 _characterController = GetComponent<SUPERCharacterAIO>();
             }
 
-            if (_playerCamera == null && _characterController != null)
-            {
-                _playerCamera = _characterController.playerCamera;
-            }
-
-            if (!ShouldShowInteractionCrosshair() || _playerCamera == null || _characterController == null)
+            if (!ShouldShowInteractionCrosshair() || _characterController == null)
             {
                 _isLookingAtInteractable = false;
                 return;
             }
 
-            RaycastHit hit;
-            _isLookingAtInteractable = Physics.SphereCast(
-                _playerCamera.transform.position,
-                0.25f,
-                _playerCamera.transform.forward,
-                out hit,
-                _characterController.interactRange,
-                _characterController.interactableLayer,
-                QueryTriggerInteraction.Ignore) &&
-                hit.collider.GetComponent<IInteractable>() != null;
+            _isLookingAtInteractable = _characterController.TryGetCurrentInteractable(out _);
         }
 
         private bool ShouldShowInteractionCrosshair()
