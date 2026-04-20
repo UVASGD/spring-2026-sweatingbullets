@@ -1618,7 +1618,7 @@ PrefabInstance:
     - target: {fileID: 4472277039719152823, guid: 17b422b6a07813e4e9591e34b5aa4c24, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 408721b8a68274903a80e31b2a6a0604, type: 2}
+      objectReference: {fileID: 2100000, guid: e3be4407e775441e49ecababa039e322, type: 2}
     - target: {fileID: 7685565423820408937, guid: 17b422b6a07813e4e9591e34b5aa4c24, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -2103,7 +2103,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1958969217}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -17.999912}
+  m_LocalPosition: {x: 0, y: 0, z: -32.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2111,7 +2111,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 266.00006, y: -47.99993}
+  m_AnchoredPosition: {x: 344.7, y: -47}
   m_SizeDelta: {x: 160, y: 100}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1958969219
@@ -2276,8 +2276,8 @@ HingeJoint2D:
   m_BreakTorque: Infinity
   m_BreakAction: 3
   m_AutoConfigureConnectedAnchor: 1
-  m_Anchor: {x: -44.005688, y: -20.7371}
-  m_ConnectedAnchor: {x: 317.53177, y: 266.47708}
+  m_Anchor: {x: -113.81027, y: -84.55189}
+  m_ConnectedAnchor: {x: 320.26645, y: 249.55006}
   m_UseConnectedAnchor: 1
   m_UseMotor: 0
   m_Motor:
@@ -2286,7 +2286,7 @@ HingeJoint2D:
   m_UseLimits: 0
   m_AngleLimits:
     m_LowerAngle: 0
-    m_UpperAngle: 180
+    m_UpperAngle: 90
 --- !u!1 &1964298818
 GameObject:
   m_ObjectHideFlags: 0
