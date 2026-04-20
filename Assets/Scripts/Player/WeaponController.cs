@@ -83,10 +83,6 @@ namespace Player
         [SerializeField] private float dropCurveSteepness = 8f;
         [Tooltip("Pickup prefab spawned when nerves cause the player to drop the gun.")]
         [SerializeField] private GameObject droppedGunPickupPrefab;
-        [Tooltip("Height above the player used when probing the ground for a dropped gun pickup.")]
-        [SerializeField] private float dropGroundProbeHeight = 10f;
-        [Tooltip("Vertical offset applied after grounding the dropped gun pickup.")]
-        [SerializeField] private float dropSpawnYOffset = 0.25f;
 
         public float aimSpeed = 25f;
         public float range = 100f;
@@ -363,7 +359,7 @@ namespace Player
 
             _isFiring = false;
             ResetHammerState();
-            _playerController.DropGun(droppedGunPickupPrefab, dropGroundProbeHeight, dropSpawnYOffset);
+            _playerController.DropGun(droppedGunPickupPrefab);
         }
 
         private float EvaluateDropChance(float nerves)

@@ -1308,6 +1308,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6817638360683979318}
+    - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6817638360683979324}
     - targetCorrespondingSourceObject: {fileID: 7153238028321174612, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5851341813854994998}
@@ -1384,8 +1387,12 @@ MonoBehaviour:
   movementScript: {fileID: 0}
   gunActual: {fileID: 0}
   gunViewmodel: {fileID: 0}
+  playerCamera: {fileID: 785695879}
   startWithGun: 1
   startingBulletCount: 10
+  dropForwardForce: 2
+  dropUpForce: 1.5
+  dropAngularVelocity: 5
   crosshairIdleColor: {r: 1, g: 1, b: 1, a: 1}
   crosshairInteractableColor: {r: 0, g: 1, b: 0, a: 1}
   crosshairLineLength: 8
@@ -1735,6 +1742,18 @@ MonoBehaviour:
   sprintingNoise: 0.7
   gunshotNoise: 1
   gunshotDecayTime: 1.5
+--- !u!114 &6817638360683979324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6817638360683979277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb878bfef8dd4754969369b41f3aa40a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Player.GunPickup
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

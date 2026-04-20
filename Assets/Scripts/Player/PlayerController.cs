@@ -10,9 +10,14 @@ namespace Player
         [SerializeField] private MonoBehaviour movementScript;
         [SerializeField] private GameObject gunActual;
         [SerializeField] private GameObject gunViewmodel;
+        [SerializeField] private Camera playerCamera;
         [Header("Starting Loadout")]
         [SerializeField] private bool startWithGun;
         [SerializeField] private int startingBulletCount;
+        [Header("Gun Drop Physics")]
+        [SerializeField] private float dropForwardForce = 2f;
+        [SerializeField] private float dropUpForce = 1.5f;
+        [SerializeField] private float dropAngularVelocity = 5f;
         [Header("Interaction Crosshair")]
         [SerializeField] private Color crosshairIdleColor = Color.white;
         [SerializeField] private Color crosshairInteractableColor = Color.green;
@@ -87,7 +92,7 @@ namespace Player
             yield return null;
         }
 
-        public void GiveGun()
+        public void GiveGun(int bulletCount = 0)
         {
             if (_hasGun)
             {
@@ -95,12 +100,13 @@ namespace Player
             }
 
             _hasGun = true;
+            _bulletCount = bulletCount;
             UpdateGunVisuals();
         }
 
-        public void DropGun(GameObject pickupPrefab, float groundProbeHeight, float spawnYOffset)
+        public void DropGun(GameObject pickupPrefab)
         {
-            if (!_hasGun)
+            if (!_hasGun || pickupPrefab == null)
             {
                 return;
             }
@@ -108,18 +114,36 @@ namespace Player
             _hasGun = false;
             UpdateGunVisuals();
 
-            Vector3 groundPoint = ResolveDroppedGunPosition(groundProbeHeight);
-            Vector3 spawnPosition = groundPoint + Vector3.up * Mathf.Max(0.5f, spawnYOffset + 0.5f);
-            GameObject pickupObject = pickupPrefab != null
-                ? Instantiate(pickupPrefab, spawnPosition, Quaternion.identity)
-                : CreateFallbackGunPickup(spawnPosition);
+            int savedBullets = _bulletCount;
+            _bulletCount = 0;
 
-            if (pickupObject.GetComponent<GunPickup>() == null)
+            Vector3 spawnPos = playerCamera != null
+                ? playerCamera.transform.position + playerCamera.transform.forward * 0.8f
+                : transform.position + Vector3.up * 1.5f;
+            Quaternion spawnRot = playerCamera != null
+                ? playerCamera.transform.rotation
+                : Quaternion.identity;
+
+            GameObject pickupObject = Instantiate(pickupPrefab, spawnPos, spawnRot);
+
+            GunPickup gunPickup = pickupObject.GetComponent<GunPickup>();
+            if (gunPickup != null)
             {
-                pickupObject.AddComponent<GunPickup>();
+                gunPickup.Initialize(savedBullets);
             }
 
-            EnableDroppedPickupPhysics(pickupObject, groundPoint);
+            Rigidbody pickupRb = pickupObject.GetComponent<Rigidbody>();
+            if (pickupRb != null)
+            {
+                Vector3 throwDir = playerCamera != null
+                    ? playerCamera.transform.forward * dropForwardForce + Vector3.up * dropUpForce
+                    : Vector3.forward * dropForwardForce + Vector3.up * dropUpForce;
+                pickupRb.linearVelocity = throwDir;
+                pickupRb.angularVelocity = new Vector3(
+                    UnityEngine.Random.Range(-dropAngularVelocity, dropAngularVelocity),
+                    UnityEngine.Random.Range(-dropAngularVelocity, dropAngularVelocity),
+                    UnityEngine.Random.Range(-dropAngularVelocity, dropAngularVelocity));
+            }
         }
 
         public void AddAmmo(int amount)
@@ -180,125 +204,6 @@ namespace Player
             {
                 gunViewmodel.SetActive(_hasGun);
             }
-        }
-
-        private Vector3 ResolveDroppedGunPosition(float groundProbeHeight)
-        {
-            float probeHeight = Mathf.Max(0.1f, groundProbeHeight);
-            Vector3 rayOrigin = transform.position + Vector3.up * probeHeight;
-
-            if (Physics.Raycast(
-                    rayOrigin,
-                    Vector3.down,
-                    out RaycastHit hit,
-                    probeHeight * 2f,
-                    Physics.DefaultRaycastLayers,
-                    QueryTriggerInteraction.Ignore))
-            {
-                return hit.point;
-            }
-
-            return transform.position;
-        }
-
-        private GameObject CreateFallbackGunPickup(Vector3 position)
-        {
-            GameObject pickupObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            pickupObject.name = "GunPickup";
-            pickupObject.transform.SetPositionAndRotation(position, Quaternion.Euler(90f, 0f, 0f));
-            pickupObject.transform.localScale = new Vector3(0.18f, 0.45f, 0.18f);
-
-            Renderer renderer = pickupObject.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                renderer.material.color = new Color(0.2f, 0.2f, 0.2f);
-            }
-
-            return pickupObject;
-        }
-
-        private void EnableDroppedPickupPhysics(GameObject pickupObject, Vector3 groundPoint)
-        {
-            if (pickupObject == null)
-            {
-                return;
-            }
-
-            Rigidbody pickupRigidbody = pickupObject.GetComponent<Rigidbody>();
-            if (pickupRigidbody == null)
-            {
-                pickupRigidbody = pickupObject.AddComponent<Rigidbody>();
-            }
-
-            if (!HasSolidCollider(pickupObject))
-            {
-                SnapPickupToGround(pickupObject, groundPoint);
-                pickupRigidbody.isKinematic = true;
-                pickupRigidbody.useGravity = false;
-                pickupRigidbody.linearVelocity = Vector3.zero;
-                pickupRigidbody.angularVelocity = Vector3.zero;
-                return;
-            }
-
-            pickupRigidbody.isKinematic = false;
-            pickupRigidbody.useGravity = true;
-            pickupRigidbody.linearVelocity = Vector3.zero;
-            pickupRigidbody.angularVelocity = Vector3.zero;
-            pickupRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-            pickupRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        }
-
-        private void SnapPickupToGround(GameObject pickupObject, Vector3 groundPoint)
-        {
-            Bounds? pickupBounds = GetPickupBounds(pickupObject);
-            if (!pickupBounds.HasValue)
-            {
-                pickupObject.transform.position = groundPoint;
-                return;
-            }
-
-            Vector3 position = pickupObject.transform.position;
-            position += Vector3.up * (groundPoint.y - pickupBounds.Value.min.y);
-            pickupObject.transform.position = position;
-        }
-
-        private Bounds? GetPickupBounds(GameObject pickupObject)
-        {
-            bool hasBounds = false;
-            Bounds combinedBounds = default;
-
-            foreach (Collider pickupCollider in pickupObject.GetComponentsInChildren<Collider>())
-            {
-                if (pickupCollider == null || !pickupCollider.enabled)
-                {
-                    continue;
-                }
-
-                if (!hasBounds)
-                {
-                    combinedBounds = pickupCollider.bounds;
-                    hasBounds = true;
-                }
-                else
-                {
-                    combinedBounds.Encapsulate(pickupCollider.bounds);
-                }
-            }
-
-            return hasBounds ? combinedBounds : null;
-        }
-
-        private bool HasSolidCollider(GameObject pickupObject)
-        {
-            foreach (Collider pickupCollider in pickupObject.GetComponentsInChildren<Collider>())
-            {
-                if (pickupCollider != null && pickupCollider.enabled && !pickupCollider.isTrigger)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private void UpdateInteractionCrosshair()

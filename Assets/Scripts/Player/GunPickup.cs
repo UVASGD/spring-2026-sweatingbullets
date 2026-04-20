@@ -5,6 +5,13 @@ namespace Player
 {
     public class GunPickup : MonoBehaviour, IInteractable
     {
+        private int _bulletCount;
+
+        public void Initialize(int bulletCount)
+        {
+            _bulletCount = bulletCount;
+        }
+
         public bool CanInteract(PlayerController playerController)
         {
             return playerController != null && !playerController.HasGun;
@@ -17,7 +24,7 @@ namespace Player
                 return false;
             }
 
-            playerController.GiveGun();
+            playerController.GiveGun(_bulletCount);
             Destroy(gameObject);
             return true;
         }
