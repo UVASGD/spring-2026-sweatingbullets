@@ -1,6 +1,7 @@
 using UnityEngine;
 using Enemy;
 using Unity;
+using Player;
 
 public class ExplodingBarrelController : MonoBehaviour, IEnvironmentalObject
 {
@@ -8,28 +9,36 @@ public class ExplodingBarrelController : MonoBehaviour, IEnvironmentalObject
     public float explosionRadius = 5f;
 
     public bool drawGizmos = true;
-
-    void Explode(){
+    [SerializeField] private float playerHeightOffset = 1.0f; 
+    void Explode()
+    {
         Instantiate(explodeFXPrefab, transform.position, transform.rotation);
         Destroy(this.transform.parent.gameObject);
 
-        // Check for nearby objects to apply explosion effects
         Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
         foreach (Collider nearbyObject in colliders)
         {
-            // Check if the nearby object has an EnemyAI script and apply damage
             EnemyAI enemy = nearbyObject.GetComponent<EnemyAI>();
             if (enemy != null)
             {
-                enemy.ExplosionHit((enemy.transform.position - transform.position).normalized); // You can customize the hit parameters as needed
+                enemy.ExplosionHit((enemy.transform.position - transform.position).normalized);
             }
-            else{
-                Rigidbody hitRb = nearbyObject.GetComponent<Rigidbody>();
-                if (hitRb != null){
-                    Vector3 hitDirection = (hitRb.transform.position - transform.position);
-                    float hitDistance = hitDirection.magnitude;
-                    hitDirection = hitDirection.normalized;
-                    hitRb.AddForce(hitDirection * 10f, ForceMode.Impulse);
+
+            PlayerController playerController = nearbyObject.GetComponent<PlayerController>();
+            if (playerController != null)
+            {
+                Vector3 playerAimPosition = playerController.transform.position + Vector3.up * playerHeightOffset;
+                Vector3 rayOrigin = transform.position;
+                Vector3 rayDirection = (playerAimPosition - rayOrigin).normalized;
+
+                if (Physics.Raycast(rayOrigin, rayDirection, out RaycastHit hit, explosionRadius))
+                {
+                    playerController.Hit(hit.point, rayDirection);
+                }
+                else
+                {
+                    // Fallback if raycast misses — still hit the player
+                    playerController.Hit(playerAimPosition, rayDirection);
                 }
             }
         }

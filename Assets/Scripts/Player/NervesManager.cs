@@ -17,7 +17,7 @@ namespace Player
         [SerializeField] private NervesAudioController audioController;
 
         [Header("Debug (Read Only)")]
-        [SerializeField] private float currentNerves;
+        public float currentNerves { get; set; }
         [SerializeField] private float totalInputsDelta;
         [SerializeField] private float recoveryDelta;
         [SerializeField] private bool showDebugInfo = true;

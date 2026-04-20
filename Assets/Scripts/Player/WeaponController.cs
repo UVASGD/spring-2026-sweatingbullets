@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using NUnit.Framework.Constraints;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -68,9 +69,17 @@ namespace Player
         public AudioClip cockingSound;
         public AudioClip fireSound;
 
+        [Header("Trigger Delay (Nerves)")]
+        [Tooltip("Optional — if assigned, high nerves add a hesitation before firing")]
+        public NervesManager nervesManager;
+        [Tooltip("Max trigger delay at 100 nerves (seconds)")]
+        [Range(0f, 0.5f)]
+        public float maxTriggerDelay = 0.15f;
+
         public float aimSpeed = 25f;
         public float range = 100f;
         private bool _isHammerCocked = false;
+        private bool _isFiring = false;
 
         public bool
             canFireWeapon =
@@ -168,8 +177,33 @@ namespace Player
                 return;
             }
 
-            if (!canFireWeapon) return;
+            if (!canFireWeapon || _isFiring) return;
 
+            // Calculate trigger delay based on nerves
+            float delay = 0f;
+            if (nervesManager != null && maxTriggerDelay > 0f)
+            {
+                float nervesNormalized = Mathf.Clamp01(nervesManager.currentNerves / 100f);
+                // Randomize slightly so it's not a predictable fixed delay
+                delay = nervesNormalized * maxTriggerDelay * UnityEngine.Random.Range(0.6f, 1f);
+            }
+
+            if (delay > 0.001f)
+                StartCoroutine(DelayedFire(delay));
+            else
+                ExecuteShot();
+        }
+
+        private IEnumerator DelayedFire(float delay)
+        {
+            _isFiring = true;
+            yield return new WaitForSeconds(delay);
+            ExecuteShot();
+            _isFiring = false;
+        }
+
+        private void ExecuteShot()
+        {
             // Fire
             if (gunAnimator != null)
             {
