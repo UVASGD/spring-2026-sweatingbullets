@@ -1311,6 +1311,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6817638360683979324}
+    - targetCorrespondingSourceObject: {fileID: 4871122637154779026, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6817638360683979325}
     - targetCorrespondingSourceObject: {fileID: 7153238028321174612, guid: c986bfdf52ba08c469d2e8d4e4cfa730, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5851341813854994998}
@@ -1754,6 +1757,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb878bfef8dd4754969369b41f3aa40a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.GunPickup
+--- !u!114 &6817638360683979325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6817638360683979277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65df0bd9db202481ca01d770f54233e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Player.PassiveNervesInput
+  maxContribution: 100
+  nervesIncreasePerSecond: 10
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
