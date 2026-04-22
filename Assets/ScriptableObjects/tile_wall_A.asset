@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd400bdcc32944e4daf99f32fa1e078c, type: 3}
-  m_Name: tile_wall_5x5
-  m_EditorClassIdentifier: Assembly-CSharp::TileDefinition
-  prefab: {fileID: 550679422087005915, guid: 6b563c73cce7b5f43852d21c04d965f2, type: 3}
+  m_Name: tile_wall_A
+  m_EditorClassIdentifier: Assembly-CSharp::Tiles.TileDefinition
+  prefab: {fileID: 5253709340972004527, guid: aa72840ae12466e429e1aac5ad275d8f, type: 3}
   spawnWeight: 10
   north: 1
-  east: 1
-  south: 1
-  west: 1
+  east: 0
+  south: 0
+  west: 0

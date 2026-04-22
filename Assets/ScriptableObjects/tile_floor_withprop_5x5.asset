@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd400bdcc32944e4daf99f32fa1e078c, type: 3}
   m_Name: tile_floor_withprop_5x5
   m_EditorClassIdentifier: Assembly-CSharp::TileDefinition
-  prefab: {fileID: 1131964105003378098, guid: 35f4c06502886f14c8f4eecbdb33c91e, type: 3}
+  prefab: {fileID: 919132149155446097, guid: 4a010a0a36f04af48825cacac0c5b3fa, type: 3}
   spawnWeight: 20
   north: 0
   east: 0

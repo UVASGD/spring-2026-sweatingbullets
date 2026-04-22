@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd400bdcc32944e4daf99f32fa1e078c, type: 3}
   m_Name: tile_spawn_5x5
   m_EditorClassIdentifier: Assembly-CSharp::TileDefinition
-  prefab: {fileID: 995737521773352745, guid: 17b422b6a07813e4e9591e34b5aa4c24, type: 3}
+  prefab: {fileID: 5931665816741487849, guid: 61c40640a109c5f4bbcc91f67d5f6721, type: 3}
   spawnWeight: 10
   north: 0
   east: 0
