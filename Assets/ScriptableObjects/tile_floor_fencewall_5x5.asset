@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd400bdcc32944e4daf99f32fa1e078c, type: 3}
   m_Name: tile_floor_fencewall_5x5
   m_EditorClassIdentifier: Assembly-CSharp::TileDefinition
-  prefab: {fileID: 919132149155446097, guid: e31113d812deb914d910740cf435609a, type: 3}
+  prefab: {fileID: 4905097229884029715, guid: 7e8e8714a304d6445b52677194ee98ad, type: 3}
   spawnWeight: 10
   north: 0
   east: 0
