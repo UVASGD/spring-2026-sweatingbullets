@@ -680,9 +680,11 @@ MonoBehaviour:
   allTileDefinitions:
   - {fileID: 11400000, guid: 8f5465d747267cc47ba6e49aded1ddcc, type: 2}
   - {fileID: 11400000, guid: 298da2f5fa3b6b645ac28a5082e3980b, type: 2}
-  - {fileID: 11400000, guid: d6b5d5c490bd00548894dfcde62da703, type: 2}
   - {fileID: 11400000, guid: b4b7c455a23b7e247a4a67d4c3a6f4d7, type: 2}
   - {fileID: 11400000, guid: 02fb13fe9dd2300418e80b24808d4149, type: 2}
+  - {fileID: 11400000, guid: 2f745339162c45b4180879cafca44f12, type: 2}
+  - {fileID: 11400000, guid: c01c67502de99ee47aa4e332956e9d75, type: 2}
+  - {fileID: 11400000, guid: c268c9884752dc342b6d52832bed6c65, type: 2}
   gridSizeX: 10
   gridSizeY: 10
   tileSize: 5
