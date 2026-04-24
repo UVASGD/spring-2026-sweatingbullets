@@ -1364,8 +1364,8 @@ MonoBehaviour:
   microShakeFrequency: 70.2
   gunRecoilMultiplier: 2.5
   gunKickbackPitch: 4
-  adsSwayVerticalAmount: 0.11
-  adsSwayHorizontalAmount: 2
+  adsSwayVerticalAmount: 0.45
+  adsSwayHorizontalAmount: 0.72
   adsSwayNervesMultiplier: 5.02
   adsSwaySpeedNervesMultiplier: 5
   adsSwaySpeed: 3
