@@ -68,6 +68,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ad7d7944d2b1a6b44aaa8975ef92c928, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2715568160165803192}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ad7d7944d2b1a6b44aaa8975ef92c928, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2836708848825951114}
   m_SourcePrefab: {fileID: 100100000, guid: ad7d7944d2b1a6b44aaa8975ef92c928, type: 3}
 --- !u!1 &1717816738670878221 stripped
 GameObject:
@@ -155,3 +158,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 2.5503986, z: 0.63085604}
   m_Center: {x: -1.6100001, y: 1.2551993, z: -0.664572}
+--- !u!114 &2836708848825951114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1717816738670878221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41369a4e3cbc4e6c865c6727ad72bcd1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Tiles.Tile
+  gridPosition: {x: 0, y: 0}
+  definition: {fileID: 11400000, guid: 24a62d9ede203ae46b0fc369cb09335c, type: 2}
+  north: {fileID: 0}
+  east: {fileID: 0}
+  south: {fileID: 0}
+  west: {fileID: 0}

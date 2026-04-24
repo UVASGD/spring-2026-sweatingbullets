@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: d45e4402cb217fb429c67e767e88b74f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -4.708817
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d45e4402cb217fb429c67e767e88b74f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.40000132
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d45e4402cb217fb429c67e767e88b74f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 15.310366
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d45e4402cb217fb429c67e767e88b74f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -83,10 +83,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Tiles.Tile
   gridPosition: {x: 0, y: 0}
   definition: {fileID: 11400000, guid: 2f745339162c45b4180879cafca44f12, type: 2}
-  north: {fileID: 0}
-  east: {fileID: 0}
-  south: {fileID: 0}
-  west: {fileID: 0}
+  posZ: {fileID: 0}
+  posX: {fileID: 0}
+  negZ: {fileID: 0}
+  negX: {fileID: 0}
 --- !u!65 &6311787776102437719
 BoxCollider:
   m_ObjectHideFlags: 0
