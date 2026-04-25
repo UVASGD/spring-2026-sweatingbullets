@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 353f10b93525dfb4782632bcbd276134, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -3.7801216
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 353f10b93525dfb4782632bcbd276134, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.4000015
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 353f10b93525dfb4782632bcbd276134, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 35.587284
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 353f10b93525dfb4782632bcbd276134, type: 3}
       propertyPath: m_LocalRotation.w
@@ -110,7 +110,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Tiles.Tile
   gridPosition: {x: 0, y: 0}
   definition: {fileID: 11400000, guid: c01c67502de99ee47aa4e332956e9d75, type: 2}
-  north: {fileID: 0}
-  east: {fileID: 0}
-  south: {fileID: 0}
-  west: {fileID: 0}
+  posZ: {fileID: 0}
+  posX: {fileID: 0}
+  negZ: {fileID: 0}
+  negX: {fileID: 0}

@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: tile_floor_5x5
   m_EditorClassIdentifier: Assembly-CSharp::TileDefinition
   prefab: {fileID: 2791576317991417124, guid: d02a7904be1e4484686a8c2b6f4d4941, type: 3}
-  spawnWeight: 20
-  north: 0
-  east: 0
-  south: 0
-  west: 0
+  spawnWeight: 50
+  posZ: 0
+  posX: 0
+  negZ: 0
+  negX: 0
+  category: 0
