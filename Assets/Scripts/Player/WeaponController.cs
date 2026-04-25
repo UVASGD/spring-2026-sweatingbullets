@@ -1,10 +1,7 @@
 using System;
 using System.Collections;
-using NUnit.Framework.Constraints;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 using Enemy;
 
 namespace Player
@@ -51,13 +48,20 @@ namespace Player
         public Camera playerCamera;
         public Transform aimPosition;
         public Transform HipFirePosition;
+        [SerializeField] private Transform viewmodelRoot;
 
         private const string FireTrigger = "Fire";
         private const string HammerPullBool = "HammerPull";
         private bool _isAiming = false;
         private float _hipToAimZOffset;
+        [SerializeField] private bool startsWithWeapon = true;
+        [SerializeField] private int startingAmmo = 0;
+        private bool _hasWeapon;
+        private int _ammoCount;
 
         public bool IsAiming => _isAiming;
+        public bool HasWeapon => _hasWeapon;
+        public int AmmoCount => _ammoCount;
 
         public event Action OnWeaponFired;
         public event Action<ShotResolutionContext> OnWeaponShotResolved;
@@ -85,35 +89,57 @@ namespace Player
             canFireWeapon =
                 false; // modified by event OnStateExit() in the HammerPull state in the Animator for the player's gun. Script called "Pulled.cs"
 
+        private void Awake()
+        {
+            if (viewmodelRoot == null)
+                viewmodelRoot = transform;
+
+            _hasWeapon = startsWithWeapon;
+            _ammoCount = Mathf.Max(0, startingAmmo);
+            ApplyWeaponVisibility();
+        }
+
         private void Start()
         {
             // Making the smoke look like it's coming from the viewmodel when aiming
-            _hipToAimZOffset =
-                Math.Abs(
-                    HipFirePosition.localPosition.z - aimPosition.localPosition.z -
-                    0.5f /*included some offset for customization*/);
-            _originalSmokeLocalPos = smokeSpawnPoint.localPosition; // cache hip-fire local position
+            if (HipFirePosition != null && aimPosition != null)
+            {
+                _hipToAimZOffset =
+                    Math.Abs(
+                        HipFirePosition.localPosition.z - aimPosition.localPosition.z -
+                        0.5f /*included some offset for customization*/);
+            }
+
+            if (smokeSpawnPoint != null)
+                _originalSmokeLocalPos = smokeSpawnPoint.localPosition; // cache hip-fire local position
 
         }
 
         private void Update()
         {
+            if (!_hasWeapon)
+                return;
+
             // aiming button held
-            if (_isAiming && transform.localPosition != aimPosition.localPosition)
+            if (_isAiming && aimPosition != null && transform.localPosition != aimPosition.localPosition)
             {
                 transform.localPosition = Vector3.MoveTowards(transform.localPosition, aimPosition.localPosition,
                     aimSpeed * Time.deltaTime);
                 // why is localposition used here and regular position is used in the next if statement? Don't ask me. Because it works that way. lol
-                smokeSpawnPoint.localPosition = Vector3.MoveTowards(smokeSpawnPoint.localPosition,
-                    aimPosition.localPosition - new Vector3(0, 0, _hipToAimZOffset), aimSpeed * Time.deltaTime);
+                if (smokeSpawnPoint != null)
+                {
+                    smokeSpawnPoint.localPosition = Vector3.MoveTowards(smokeSpawnPoint.localPosition,
+                        aimPosition.localPosition - new Vector3(0, 0, _hipToAimZOffset), aimSpeed * Time.deltaTime);
+                }
             }
 
             // aiming button let go
-            if (!_isAiming && transform.localPosition != HipFirePosition.localPosition)
+            if (!_isAiming && HipFirePosition != null && transform.localPosition != HipFirePosition.localPosition)
             {
                 transform.localPosition = Vector3.MoveTowards(transform.localPosition, HipFirePosition.localPosition,
                     aimSpeed * Time.deltaTime);
-                smokeSpawnPoint.localPosition = _originalSmokeLocalPos;
+                if (smokeSpawnPoint != null)
+                    smokeSpawnPoint.localPosition = _originalSmokeLocalPos;
             }
         }
 
@@ -134,10 +160,8 @@ namespace Player
             if (aimDownSightsAction != null)
             {
                 aimDownSightsAction.action.Enable();
-                aimDownSightsAction.action.performed +=
-                    ctx => { _isAiming = true; Debug.Log("WeaponController: ADS performed, _isAiming = true"); };
-                aimDownSightsAction.action.canceled +=
-                    ctx => { _isAiming = false; Debug.Log("WeaponController: ADS canceled, _isAiming = false"); };
+                aimDownSightsAction.action.performed += HandleAimPerformed;
+                aimDownSightsAction.action.canceled += HandleAimCanceled;
             }
             else
             {
@@ -161,14 +185,32 @@ namespace Player
 
             if (aimDownSightsAction != null)
             {
+                aimDownSightsAction.action.performed -= HandleAimPerformed;
+                aimDownSightsAction.action.canceled -= HandleAimCanceled;
                 aimDownSightsAction.action.Disable();
             }
         }
 
+        private void HandleAimPerformed(InputAction.CallbackContext context)
+        {
+            if (!_hasWeapon)
+                return;
 
+            _isAiming = true;
+            Debug.Log("WeaponController: ADS performed, _isAiming = true");
+        }
+
+        private void HandleAimCanceled(InputAction.CallbackContext context)
+        {
+            _isAiming = false;
+            Debug.Log("WeaponController: ADS canceled, _isAiming = false");
+        }
 
         private void FireWeapon(InputAction.CallbackContext context)
         {
+            if (!_hasWeapon)
+                return;
+
             if (!_isHammerCocked)
             {
                 print("can't fire");
@@ -178,6 +220,14 @@ namespace Player
             }
 
             if (!canFireWeapon || _isFiring) return;
+
+            if (_ammoCount <= 0)
+            {
+                print("out of ammo");
+                if (weaponAudio != null && dryFireSound != null)
+                    weaponAudio.PlayOneShot(dryFireSound);
+                return;
+            }
 
             // Calculate trigger delay based on nerves
             float delay = 0f;
@@ -204,6 +254,11 @@ namespace Player
 
         private void ExecuteShot()
         {
+            if (!_hasWeapon || _ammoCount <= 0)
+                return;
+
+            _ammoCount--;
+
             // Fire
             if (gunAnimator != null)
             {
@@ -211,7 +266,7 @@ namespace Player
             }
 
             // Create particles
-            if (muzzleFlashPrefab != null && gunsmokePrefab != null && muzzlePoint != null)
+            if (muzzleFlashPrefab != null && gunsmokePrefab != null && muzzlePoint != null && smokeSpawnPoint != null)
             {
                 GameObject flash = Instantiate(muzzleFlashPrefab, muzzlePoint.position, muzzlePoint.rotation,
                     muzzlePoint);
@@ -268,13 +323,17 @@ namespace Player
             OnWeaponFired?.Invoke();
             _isHammerCocked = false;
             canFireWeapon = false;
-            gunAnimator.SetBool(HammerPullBool, _isHammerCocked);
+            if (gunAnimator != null)
+                gunAnimator.SetBool(HammerPullBool, _isHammerCocked);
         }
 
         private void PullHammer(InputAction.CallbackContext context)
         {
+            if (!_hasWeapon)
+                return;
+
             // Don't allow pulling hammer if it's already cocked or firing
-            if (_isHammerCocked || gunAnimator.GetCurrentAnimatorStateInfo(0).IsName("Fire")) return;
+            if (_isHammerCocked || (gunAnimator != null && gunAnimator.GetCurrentAnimatorStateInfo(0).IsName("Fire"))) return;
             // cock hammer
             _isHammerCocked = true;
             if (gunAnimator != null) gunAnimator.SetBool(HammerPullBool, true);
@@ -285,6 +344,34 @@ namespace Player
             // Apparently this function will get called bc I put an animation event inside HammerPull??
         {
             canFireWeapon = true;
+        }
+
+        public void SetHasWeapon(bool hasWeapon)
+        {
+            _hasWeapon = hasWeapon;
+            if (!_hasWeapon)
+            {
+                _isAiming = false;
+                _isHammerCocked = false;
+                canFireWeapon = false;
+                if (gunAnimator != null)
+                    gunAnimator.SetBool(HammerPullBool, false);
+            }
+
+            ApplyWeaponVisibility();
+        }
+
+        public void AddAmmo(int amount)
+        {
+            _ammoCount += Mathf.Max(0, amount);
+        }
+
+        private void ApplyWeaponVisibility()
+        {
+            if (viewmodelRoot == null)
+                return;
+
+            viewmodelRoot.gameObject.SetActive(_hasWeapon);
         }
     }
 }
