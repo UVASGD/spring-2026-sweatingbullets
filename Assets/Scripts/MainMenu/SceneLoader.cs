@@ -9,7 +9,7 @@ public class SceneLoader : MonoBehaviour
     {
         Debug.Log("Button clicked - starting countdown");
         // Start the coroutine that handles the waiting AND the loading
-        StartCoroutine(WaitAndLoad(5f));
+        StartCoroutine(WaitAndLoad(1f));
     }
 
     // This is now one sequence: Wait -> Then Load

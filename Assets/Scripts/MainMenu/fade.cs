@@ -56,7 +56,7 @@ public class fade : MonoBehaviour
         // yield return tells the script: "Wait until this coroutine finishes before moving on"
         yield return StartCoroutine(FadeRoutine(0.0f, 1.0f));
 
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(1f);
 
         yield return StartCoroutine(FadeRoutine(1.0f, 0.0f));
     }
