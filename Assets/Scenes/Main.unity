@@ -749,8 +749,7 @@ MonoBehaviour:
   debugEmptyAlleys: 0
   navMeshSurface: {fileID: 794702990}
   enemy: {fileID: 57577454695695748, guid: a16ac3888d58b474390bd9894ce9eb9d, type: 3}
-  spawnPoints:
-  - {fileID: 2016020059}
+  enemiesToSpawn: 1
 --- !u!114 &794702990
 MonoBehaviour:
   m_ObjectHideFlags: 0
