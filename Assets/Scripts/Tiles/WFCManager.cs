@@ -50,6 +50,9 @@ namespace Tiles
         // ---- To spawn the player in the spawn location ----
         public GameObject playerPrefab;
 
+        [Header("Boundaries")]
+        public GameObject fencePrefab;
+
         // ---- Tile references ----
         [Header("Tile References")]
         public TileDefinition pathTileDefinition;
@@ -129,6 +132,8 @@ namespace Tiles
             SpawnOutsideTiles();
             UpdateSandBlendBounds();
 
+            SpawnBoundaryFences();
+
             yield return null;
 
             if (navMeshSurface != null) navMeshSurface.BuildNavMesh();
@@ -147,6 +152,41 @@ namespace Tiles
                 clone.GetComponent<EnemyAI>().Init(player);
             }
         }
+
+        void SpawnBoundaryFences()
+            {
+                if (fencePrefab == null) return;
+
+                float half = tileSize * 0.5f;
+
+                // --- TOP & BOTTOM EDGES (horizontal fences) ---
+                for (int x = 0; x < gridSizeX; x++)
+                {
+                    float worldX = x * tileSize;
+
+                    // Bottom edge (y = -0.5 tile)
+                    Vector3 bottomPos = new Vector3(worldX, 0, -half);
+                    Instantiate(fencePrefab, bottomPos, Quaternion.identity, transform);
+
+                    // Top edge (y = gridSizeY - 0.5 tile)
+                    Vector3 topPos = new Vector3(worldX, 0, (gridSizeY - 1) * tileSize + half);
+                    Instantiate(fencePrefab, topPos, Quaternion.identity, transform);
+                }
+
+                // --- LEFT & RIGHT EDGES (vertical fences) ---
+                for (int y = 0; y < gridSizeY; y++)
+                {
+                    float worldZ = y * tileSize;
+
+                    // Left edge (x = -0.5 tile)
+                    Vector3 leftPos = new Vector3(-half, 0, worldZ);
+                    Instantiate(fencePrefab, leftPos, Quaternion.Euler(0, 90, 0), transform);
+
+                    // Right edge (x = gridSizeX - 0.5 tile)
+                    Vector3 rightPos = new Vector3((gridSizeX - 1) * tileSize + half, 0, worldZ);
+                    Instantiate(fencePrefab, rightPos, Quaternion.Euler(0, 90, 0), transform);
+                }
+            }
 
         Vector2Int WorldToGrid(Vector3 worldPos)
         {
