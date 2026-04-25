@@ -54,7 +54,9 @@ namespace Tiles
         [Header("Starting Pickups")]
         [SerializeField] private GameObject gunPickupPrefab;
         [SerializeField] private GameObject bulletPickupPrefab;
-        [SerializeField] private Vector3 gunPickupSpawnOffset = new Vector3(1.25f, 0.45f, 0.75f);
+        [SerializeField, Min(0)] private int startingGunPickupCount = 2;
+        [SerializeField] private float gunPickupHeight = 0.45f;
+        [SerializeField, Min(0f)] private float gunPickupCellJitter = 1.5f;
         [SerializeField] private Vector3 bulletPickupSpawnOffset = new Vector3(-2.1f, 0.7f, 0.9f);
         [SerializeField] private Vector3 gunPickupScale = new Vector3(0.2f, 0.2f, 0.2f);
         [SerializeField, Min(0)] private int startingBulletPickupCount = 1;
@@ -768,18 +770,23 @@ namespace Tiles
 
         void SpawnStartingPickups(Vector3 spawnTilePosition)
         {
-            SpawnPickup(
-                gunPickupPrefab,
-                PickupItem.PickupType.Gun,
-                0,
-                spawnTilePosition + gunPickupSpawnOffset,
-                Quaternion.Euler(0f, 35f, 90f),
-                gunPickupScale,
-                "Gun Pickup");
-
             System.Random bulletRandom = useBulletPickupSeed
                 ? new System.Random(bulletPickupSeed)
                 : new System.Random();
+
+            System.Random gunRandom = new System.Random();
+            List<Vector2Int> gunPickupCells = GetRandomGunPickupCells(gunRandom);
+            for (int i = 0; i < startingGunPickupCount && i < gunPickupCells.Count; i++)
+            {
+                SpawnPickup(
+                    gunPickupPrefab,
+                    PickupItem.PickupType.Gun,
+                    0,
+                    GetGunPickupPosition(gunPickupCells[i], gunRandom),
+                    GetGunPickupRotation(gunRandom),
+                    gunPickupScale,
+                    "Gun Pickup");
+            }
 
             int nearCountMin = Mathf.Max(0, Mathf.Min(nearBulletPickupCountRange.x, nearBulletPickupCountRange.y));
             int nearCountMax = Mathf.Max(nearCountMin, Mathf.Max(nearBulletPickupCountRange.x, nearBulletPickupCountRange.y));
@@ -816,6 +823,41 @@ namespace Tiles
                     Vector3.one,
                     "Bullet Pickup");
             }
+        }
+
+        List<Vector2Int> GetRandomGunPickupCells(System.Random rng)
+        {
+            List<Vector2Int> candidates = new List<Vector2Int>();
+            for (int x = 0; x < gridSizeX; x++)
+            {
+                for (int y = 0; y < gridSizeY; y++)
+                {
+                    Vector2Int cell = new Vector2Int(x, y);
+                    if (buildingCells.Contains(cell) || reservedMapFeatureCells.Contains(cell))
+                        continue;
+
+                    candidates.Add(cell);
+                }
+            }
+
+            Shuffle(candidates, rng);
+            return candidates;
+        }
+
+        Vector3 GetGunPickupPosition(Vector2Int cell, System.Random rng)
+        {
+            float maxJitter = Mathf.Min(Mathf.Max(0f, gunPickupCellJitter), tileSize * 0.45f);
+            Vector3 jitter = new Vector3(
+                RandomRange(rng, -maxJitter, maxJitter),
+                0f,
+                RandomRange(rng, -maxJitter, maxJitter));
+
+            return GridToWorld(cell) + Vector3.up * gunPickupHeight + jitter;
+        }
+
+        Quaternion GetGunPickupRotation(System.Random rng)
+        {
+            return Quaternion.Euler(0f, RandomRange(rng, 0f, 360f), 90f);
         }
 
         Vector3 GetBulletPickupPosition(Vector3 spawnTilePosition, int index, int count, System.Random rng)
