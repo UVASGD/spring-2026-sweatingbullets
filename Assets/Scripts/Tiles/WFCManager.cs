@@ -50,6 +50,9 @@ namespace Tiles
         // ---- To spawn the player in the spawn location ----
         public GameObject playerPrefab;
 
+        [Header("Boundaries")]
+        public GameObject fencePrefab;
+
         // ---- Tile references ----
         [Header("Tile References")]
         public TileDefinition pathTileDefinition;
@@ -102,6 +105,7 @@ namespace Tiles
         public NavMeshSurface navMeshSurface;
         public GameObject enemy;
         public List<Transform> spawnPoints;
+        public int enemiesToSpawn;
 
         // ---- Internal state ----
         private readonly HashSet<Vector2Int> mainRoadCells = new HashSet<Vector2Int>();
@@ -130,6 +134,8 @@ namespace Tiles
             UploadPoissonKernel(16, 0.015f);
             UpdateSandBlendBounds();
 
+            SpawnBoundaryFences();
+
             yield return null;
 
             if (navMeshSurface != null) navMeshSurface.BuildNavMesh();
@@ -137,11 +143,15 @@ namespace Tiles
             GameObject spawnTile = GameObject.FindWithTag("Spawn");
             GameObject player = GameObject.FindWithTag("Player");
             player.transform.position = spawnTile.transform.position + Vector3.up * 3;
-            
-            foreach (var t in spawnPoints)
+            Vector2Int playerGrid = WorldToGrid(spawnTile.transform.position);
+
+            for (int i = 0; i < enemiesToSpawn; i++)
             {
-                GameObject clone = Instantiate(enemy, t.position, t.rotation);
-                clone.GetComponent<EnemyAI>().Init(GameObject.FindWithTag("Player"));
+                Vector2Int spawnGrid = GetEnemySpawnLocation(playerGrid);
+
+                Vector3 worldPos = GridToWorld(spawnGrid);
+                GameObject clone = Instantiate(enemy, worldPos, Quaternion.identity);
+                clone.GetComponent<EnemyAI>().Init(player);
             }
         }
         void UploadPoissonKernel(int count, float radius)
@@ -251,6 +261,102 @@ namespace Tiles
 
             sandBlendMaterial.SetTexture("_RoadMaskTex", mask);
         }
+        void SpawnBoundaryFences()
+            {
+                if (fencePrefab == null) return;
+
+                float half = tileSize * 0.5f;
+
+                // --- TOP & BOTTOM EDGES (horizontal fences) ---
+                for (int x = 0; x < gridSizeX; x++)
+                {
+                    float worldX = x * tileSize;
+
+                    // Bottom edge (y = -0.5 tile)
+                    Vector3 bottomPos = new Vector3(worldX, 0, -half);
+                    Instantiate(fencePrefab, bottomPos, Quaternion.identity, transform);
+
+                    // Top edge (y = gridSizeY - 0.5 tile)
+                    Vector3 topPos = new Vector3(worldX, 0, (gridSizeY - 1) * tileSize + half);
+                    Instantiate(fencePrefab, topPos, Quaternion.identity, transform);
+                }
+
+                // --- LEFT & RIGHT EDGES (vertical fences) ---
+                for (int y = 0; y < gridSizeY; y++)
+                {
+                    float worldZ = y * tileSize;
+
+                    // Left edge (x = -0.5 tile)
+                    Vector3 leftPos = new Vector3(-half, 0, worldZ);
+                    Instantiate(fencePrefab, leftPos, Quaternion.Euler(0, 90, 0), transform);
+
+                    // Right edge (x = gridSizeX - 0.5 tile)
+                    Vector3 rightPos = new Vector3((gridSizeX - 1) * tileSize + half, 0, worldZ);
+                    Instantiate(fencePrefab, rightPos, Quaternion.Euler(0, 90, 0), transform);
+                }
+            }
+
+        Vector2Int WorldToGrid(Vector3 worldPos)
+        {
+            return new Vector2Int(
+                Mathf.RoundToInt(worldPos.x / tileSize),
+                Mathf.RoundToInt(worldPos.z / tileSize)
+            );
+        }
+
+        Vector2Int GetOppositeEdgeDirection(Vector2Int playerPos)
+        {
+            int distLeft = playerPos.x;
+            int distRight = gridSizeX - 1 - playerPos.x;
+            int distBottom = playerPos.y;
+            int distTop = gridSizeY - 1 - playerPos.y;
+
+            int min = Mathf.Min(distLeft, distRight, distBottom, distTop);
+
+            if (min == distLeft) return Vector2Int.right;
+            if (min == distRight) return Vector2Int.left;
+            if (min == distBottom) return Vector2Int.up;
+            return Vector2Int.down;
+        }
+
+        Vector2Int GetEnemySpawnLocation(Vector2Int playerPos)
+        {
+            // Combine all valid walkable tiles
+            List<Vector2Int> candidates = new List<Vector2Int>();
+            candidates.AddRange(mainRoadCells);
+            candidates.AddRange(alleyCells);
+
+            if (candidates.Count == 0)
+                return playerPos; // fallback safety
+
+            // Determine preferred direction (opposite side of map)
+            Vector2Int preferredDir = GetOppositeEdgeDirection(playerPos);
+
+            Vector2Int bestCandidate = candidates[0];
+            float bestScore = float.MinValue;
+
+            foreach (var c in candidates)
+            {
+                // Manhattan distance
+                float dist = Mathf.Abs(c.x - playerPos.x) + Mathf.Abs(c.y - playerPos.y);
+
+                // Direction bias (dot product)
+                Vector2Int dir = c - playerPos;
+                float directionalScore = Vector2.Dot(dir, preferredDir);
+
+                // Final score (tweak weights if needed)
+                float score = dist * 1.0f + directionalScore * 2.0f;
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestCandidate = c;
+                }
+            }
+
+            return bestCandidate;
+        }
+
         void InitializeSets()
         {
             mainRoadCells.Clear();

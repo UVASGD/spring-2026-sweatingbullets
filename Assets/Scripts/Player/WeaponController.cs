@@ -81,6 +81,25 @@ namespace Player
         private bool _isHammerCocked = false;
         private bool _isFiring = false;
 
+        [Header("Walking Sway")]
+        [Tooltip("Player rigidbody whose horizontal speed drives the sway. Auto-resolved from parent if left empty.")]
+        public Rigidbody playerRigidbody;
+        [Tooltip("Peak local-space offset of the sway at reference speed")]
+        public float swayAmplitude = 0.015f;
+        [Tooltip("Sway oscillation frequency (Hz) at reference speed")]
+        public float swayFrequency = 6f;
+        [Tooltip("Horizontal speed at which sway reaches full amplitude/frequency")]
+        public float swayReferenceSpeed = 5f;
+        [Tooltip("Sway multiplier while aiming down sights")]
+        [Range(0f, 1f)]
+        public float swayAdsMultiplier = 0.25f;
+        [Tooltip("How fast sway weight eases in/out as speed changes (per second)")]
+        public float swaySmoothing = 8f;
+
+        private Vector3 _baseLocalPosition;
+        private float _swayPhase;
+        private float _smoothedSwayWeight;
+
         public bool
             canFireWeapon =
                 false; // modified by event OnStateExit() in the HammerPull state in the Animator for the player's gun. Script called "Pulled.cs"
@@ -94,27 +113,44 @@ namespace Player
                     0.5f /*included some offset for customization*/);
             _originalSmokeLocalPos = smokeSpawnPoint.localPosition; // cache hip-fire local position
 
+            _baseLocalPosition = transform.localPosition;
+            if (playerRigidbody == null) playerRigidbody = GetComponentInParent<Rigidbody>();
         }
 
         private void Update()
         {
-            // aiming button held
-            if (_isAiming && transform.localPosition != aimPosition.localPosition)
+            // Move the base position toward aim or hip target — sway is layered on top.
+            Vector3 targetBase = _isAiming ? aimPosition.localPosition : HipFirePosition.localPosition;
+            _baseLocalPosition = Vector3.MoveTowards(_baseLocalPosition, targetBase, aimSpeed * Time.deltaTime);
+
+            if (_isAiming)
             {
-                transform.localPosition = Vector3.MoveTowards(transform.localPosition, aimPosition.localPosition,
-                    aimSpeed * Time.deltaTime);
-                // why is localposition used here and regular position is used in the next if statement? Don't ask me. Because it works that way. lol
                 smokeSpawnPoint.localPosition = Vector3.MoveTowards(smokeSpawnPoint.localPosition,
                     aimPosition.localPosition - new Vector3(0, 0, _hipToAimZOffset), aimSpeed * Time.deltaTime);
             }
-
-            // aiming button let go
-            if (!_isAiming && transform.localPosition != HipFirePosition.localPosition)
+            else
             {
-                transform.localPosition = Vector3.MoveTowards(transform.localPosition, HipFirePosition.localPosition,
-                    aimSpeed * Time.deltaTime);
                 smokeSpawnPoint.localPosition = _originalSmokeLocalPos;
             }
+
+            // Walking sway driven by player horizontal speed
+            float speed = 0f;
+            if (playerRigidbody != null)
+            {
+                Vector3 v = playerRigidbody.linearVelocity;
+                speed = new Vector2(v.x, v.z).magnitude;
+            }
+            float speedFactor = swayReferenceSpeed > 0f ? Mathf.Clamp01(speed / swayReferenceSpeed) : 0f;
+            float targetWeight = speedFactor * (_isAiming ? swayAdsMultiplier : 1f);
+            _smoothedSwayWeight = Mathf.MoveTowards(_smoothedSwayWeight, targetWeight, swaySmoothing * Time.deltaTime);
+
+            _swayPhase += _smoothedSwayWeight * swayFrequency * Time.deltaTime * Mathf.PI * 2f;
+            Vector3 swayOffset = new Vector3(
+                Mathf.Sin(_swayPhase) * swayAmplitude,
+                Mathf.Sin(_swayPhase * 2f) * swayAmplitude * 0.5f,
+                0f) * _smoothedSwayWeight;
+
+            transform.localPosition = _baseLocalPosition + swayOffset;
         }
 
         private void OnEnable()
@@ -172,8 +208,11 @@ namespace Player
             if (!_isHammerCocked)
             {
                 print("can't fire");
-                if (weaponAudio != null && dryFireSound != null) // play click sound when dry firing
+               if (weaponAudio != null && dryFireSound != null)
+                {
+                    weaponAudio.pitch = 1f;
                     weaponAudio.PlayOneShot(dryFireSound);
+                }
                 return;
             }
 
@@ -221,7 +260,11 @@ namespace Player
             }
 
             // Create raycast + shot
-            if (weaponAudio != null && fireSound != null) weaponAudio.PlayOneShot(fireSound);
+            if (weaponAudio != null && fireSound != null)
+            {
+                weaponAudio.pitch = UnityEngine.Random.Range(0.9f, 1.1f);
+                weaponAudio.PlayOneShot(fireSound);
+            }
             Vector3 shotOrigin = playerCamera.transform.position;
             Vector3 shotDirection = playerCamera.transform.forward;
             bool hitEnemy = false;
@@ -278,7 +321,11 @@ namespace Player
             // cock hammer
             _isHammerCocked = true;
             if (gunAnimator != null) gunAnimator.SetBool(HammerPullBool, true);
-            if (weaponAudio != null && cockingSound != null) weaponAudio.PlayOneShot(cockingSound);
+            if (weaponAudio != null && cockingSound != null)
+            {
+                weaponAudio.pitch = 1f;
+                weaponAudio.PlayOneShot(cockingSound);
+            }
         }
 
         public void OnHammerPullFinished() 
