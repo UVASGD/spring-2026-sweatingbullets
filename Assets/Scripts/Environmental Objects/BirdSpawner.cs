@@ -32,7 +32,7 @@ public class BirdSpawner : MonoBehaviour
             Random.Range(-spawnArea.z / 2, spawnArea.z / 2)
         );
 
-        Vector3 spawnPos = transform.position + randomOffset;
+        Vector3 spawnPos = transform.position + randomOffset ;
 
         GameObject bird = Instantiate(birdPrefab, spawnPos, Quaternion.identity);
 
