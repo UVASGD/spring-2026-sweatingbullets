@@ -714,6 +714,20 @@ MonoBehaviour:
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 0}
   m_BuildHeightMesh: 0
+--- !u!114 &810048756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Attack
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_ActionId: 6c2ab1b8-8984-453a-af3d-a3c78ae1679a
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -832,6 +846,20 @@ MonoBehaviour:
   m_PivotReferenceSize: 0
   m_Pivot: 0
   m_WorldSpaceCollider: {fileID: 0}
+--- !u!114 &1363498393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Aim
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_ActionId: 38f133d1-47a2-4acd-a068-32dd44ff90ea
 --- !u!1 &1406424794
 GameObject:
   m_ObjectHideFlags: 0
@@ -1012,6 +1040,97 @@ Transform:
   - {fileID: 154236398}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1701916233
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: fireAction
+      value: 
+      objectReference: {fileID: 810048756}
+    - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: hammerPullAction
+      value: 
+      objectReference: {fileID: 1924092700}
+    - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: aimDownSightsAction
+      value: 
+      objectReference: {fileID: 1363498393}
+    - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 63.59
+      objectReference: {fileID: 0}
+    - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 71.92398
+      objectReference: {fileID: 0}
+    - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7245289166723988703, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: deathCam
+      value: 
+      objectReference: {fileID: 92063000}
+    - target: {fileID: 8458400472143585113, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8739283196448006463, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: m_Name
+      value: Player
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+--- !u!114 &1924092700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/HammerPull
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_ActionId: f49e3947-aab4-45bf-90a6-4ee8dc591c80
 --- !u!1 &2016020058
 GameObject:
   m_ObjectHideFlags: 0
@@ -1125,3 +1244,4 @@ SceneRoots:
   - {fileID: 2080506936}
   - {fileID: 1560676284}
   - {fileID: 1690700959}
+  - {fileID: 1701916233}

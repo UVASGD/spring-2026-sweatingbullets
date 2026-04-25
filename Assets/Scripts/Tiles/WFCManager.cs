@@ -133,7 +133,8 @@ namespace Tiles
             if (navMeshSurface != null) navMeshSurface.BuildNavMesh();
             
             GameObject spawnTile = GameObject.FindWithTag("Spawn");
-            Instantiate(playerPrefab, spawnTile.transform.position + Vector3.up * 5, spawnTile.transform.rotation);
+            GameObject player = GameObject.FindWithTag("Player");
+            player.transform.position = spawnTile.transform.position + Vector3.up * 3;
             
             foreach (var t in spawnPoints)
             {
