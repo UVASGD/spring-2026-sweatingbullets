@@ -7,6 +7,13 @@ Shader "Custom/SandBlend"
         _MainAO ("Level Sand (AO)", 2D) = "white" {}
         _MainSmoothness ("Level Smoothness", Range(0,1)) = 0.2
 
+        _CobbleTex ("Level Cobble (Color)", 2D) = "white" {}
+        _CobbleNormal ("Level Cobble (Normal)", 2D) = "bump" {}
+        _CobbleAO ("Level Cobble (AO)", 2D) = "white" {}
+        _CobbleSmoothness ("Level Cobble Smoothness", Range(0,1)) = 0.2
+
+        _RoadMaskTex("Level Mask", 2D) = "white" {}
+
         _OutsideTex ("Outside Sand (Color)", 2D) = "white" {}
         _OutsideNormal ("Outside Sand (Normal)", 2D) = "bump" {}
         _OutsideAO ("Outside Sand (AO)", 2D) = "white" {}
@@ -60,13 +67,19 @@ Shader "Custom/SandBlend"
             TEXTURE2D(_MainTex);        SAMPLER(sampler_MainTex);
             TEXTURE2D(_MainNormal);     SAMPLER(sampler_MainNormal);
             TEXTURE2D(_MainAO);         SAMPLER(sampler_MainAO);
+            TEXTURE2D(_CobbleTex);      SAMPLER(sampler_CobbleTex);
+            TEXTURE2D(_CobbleNormal);   SAMPLER(sampler_CobbleNormal);
+            TEXTURE2D(_RoadMaskTex);    SAMPLER(sampler_RoadMaskTex);
+            TEXTURE2D(_CobbleAO);       SAMPLER(sampler_CobbleAO);
             TEXTURE2D(_OutsideTex);     SAMPLER(sampler_OutsideTex);
             TEXTURE2D(_OutsideNormal);  SAMPLER(sampler_OutsideNormal);
             TEXTURE2D(_OutsideAO);      SAMPLER(sampler_OutsideAO);
 
             CBUFFER_START(UnityPerMaterial)
                 float _MainSmoothness;
+                float _CobbleSmoothness;
                 float _OutsideSmoothness;
+                float4 _PoissonOffsets[16];
                 float _Tiling;
                 float _GridMinX;
                 float _GridMinZ;
@@ -74,6 +87,8 @@ Shader "Custom/SandBlend"
                 float _GridMaxZ;
                 float _BlendWidth;
             CBUFFER_END
+            
+            int _PoissonCount;
 
             Varyings vert(Attributes IN)
             {
@@ -92,10 +107,15 @@ Shader "Custom/SandBlend"
                 // World-space tiled UVs for seamless tiling
                 float2 tiledUV = IN.positionWS.xz * _Tiling;
 
+                // Sample Cobble set
+                half4 cobbleColor = SAMPLE_TEXTURE2D(_CobbleTex, sampler_CobbleTex, tiledUV);
+                half3 cobbleNorm = UnpackNormal(SAMPLE_TEXTURE2D(_CobbleNormal, sampler_CobbleNormal, tiledUV));
+                half cobbleAO = SAMPLE_TEXTURE2D(_CobbleAO, sampler_CobbleAO, tiledUV).r;
+
                 // Sample both texture sets
-                half4 levelColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, tiledUV);
-                half3 levelNorm = UnpackNormal(SAMPLE_TEXTURE2D(_MainNormal, sampler_MainNormal, tiledUV));
-                half levelAO = SAMPLE_TEXTURE2D(_MainAO, sampler_MainAO, tiledUV).r;
+                half4 sandColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, tiledUV);
+                half3 sandNorm = UnpackNormal(SAMPLE_TEXTURE2D(_MainNormal, sampler_MainNormal, tiledUV));
+                half sandAO = SAMPLE_TEXTURE2D(_MainAO, sampler_MainAO, tiledUV).r;
 
                 half4 outsideColor = SAMPLE_TEXTURE2D(_OutsideTex, sampler_OutsideTex, tiledUV);
                 half3 outsideNorm = UnpackNormal(SAMPLE_TEXTURE2D(_OutsideNormal, sampler_OutsideNormal, tiledUV));
@@ -108,6 +128,29 @@ Shader "Custom/SandBlend"
                 float dTop   = _GridMaxZ - IN.positionWS.z;
                 float distInside = min(min(dLeft, dRight), min(dBottom, dTop));
 
+                float2 dUV = float2(dLeft / (_GridMaxX - _GridMinX), dBottom / (_GridMaxZ - _GridMinZ));
+
+                float2 texelID = floor(dUV * float2(_GridMaxX - _GridMinX, _GridMaxZ - _GridMinZ));
+                float randomAngle = frac(sin(dot(texelID, float2(127.1, 311.7))) * 43758.5453) * 6.2832;
+
+                float cosA = cos(randomAngle);
+                float sinA = sin(randomAngle);
+
+                half maskResult = 0;
+                for (int i = 0; i < _PoissonCount; i++)
+                {
+                    float2 o = _PoissonOffsets[i].xy;
+                    float2 offset = float2(cosA * o.x - sinA * o.y, sinA * o.x + cosA * o.y);
+                    maskResult += SAMPLE_TEXTURE2D_LOD(_RoadMaskTex, sampler_RoadMaskTex, dUV + offset, 0).r;
+                }
+                maskResult = _PoissonCount > 0 ? maskResult / (half)_PoissonCount : 1.0;
+                maskResult = smoothstep(0.2, 0.8, maskResult);
+
+                half4 levelColor = lerp(cobbleColor, sandColor, maskResult);
+                half3 levelNorm = lerp(cobbleNorm, sandNorm, maskResult);
+                half levelAO = lerp(cobbleAO, sandAO, maskResult);
+                half levelSmoothness = lerp(_CobbleSmoothness, _MainSmoothness, maskResult);
+
                 // 0 = outside/edge (outside tex), 1 = inside (level tex)
                 float blend = saturate(distInside / _BlendWidth);
 
@@ -115,7 +158,7 @@ Shader "Custom/SandBlend"
                 half3 albedo = lerp(outsideColor.rgb, levelColor.rgb, blend);
                 half3 normal = normalize(lerp(outsideNorm, levelNorm, blend));
                 half ao = lerp(outsideAO, levelAO, blend);
-                half smoothness = lerp(_OutsideSmoothness, _MainSmoothness, blend);
+                half smoothness = lerp(_OutsideSmoothness, levelSmoothness, blend);
 
                 // Build TBN and transform normal to world space
                 float3x3 TBN = float3x3(IN.tangentWS, IN.bitangentWS, IN.normalWS);
