@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class BirdCircler : MonoBehaviour
+public class BirdCircler : MonoBehaviour, IEnvironmentalObject
 {
     public Vector3 centerPoint;
     public float radius = 10f;
@@ -9,7 +9,13 @@ public class BirdCircler : MonoBehaviour
 
     public Vector3 boundsSize = new Vector3(50, 20, 50);
 
+    // --- Falling ---
+    public float fallSpeed = 10f;
+    public float fallRotationSpeed = 180f;
+
     private float angle;
+
+    private bool isFalling = false;
 
     void Start()
     {
@@ -17,6 +23,21 @@ public class BirdCircler : MonoBehaviour
     }
 
     void Update()
+    {
+        if (isFalling)
+        {
+            HandleFalling();
+        }
+        else
+        {
+            HandleCircling();
+        }
+    }
+
+    // =========================
+    // Circling behavior (unchanged)
+    // =========================
+    void HandleCircling()
     {
         angle += speed * Time.deltaTime;
 
@@ -44,5 +65,38 @@ public class BirdCircler : MonoBehaviour
         }
 
         transform.position = targetPos;
+    }
+
+    // =========================
+    // Falling behavior
+    // =========================
+    void HandleFalling()
+    {
+        // Rotate (tip over)
+        transform.Rotate(Vector3.forward, fallRotationSpeed * Time.deltaTime);
+
+        // Move downward
+        transform.position += Vector3.down * fallSpeed * Time.deltaTime;
+
+        // Stop at ground (y = 0)
+        if (transform.position.y <= 0f)
+        {
+            Vector3 pos = transform.position;
+            pos.y = 0f;
+            transform.position = pos;
+
+            enabled = false; // stop updating completely
+        }
+    }
+
+    // =========================
+    // Interface implementation
+    // =========================
+    public void HitByPlayer()
+    {
+        if (isFalling) return;
+
+        isFalling = true;
+        GetComponentInChildren<Collider>().enabled = false;
     }
 }

@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 218424973301880926}
   - component: {fileID: 3919614538163576745}
+  - component: {fileID: 6258585759276085486}
   m_Layer: 0
   m_Name: BirdPrefab
   m_TagString: Untagged
@@ -50,6 +51,29 @@ MonoBehaviour:
   speed: 50
   heightOffset: 40
   boundsSize: {x: 50, y: 50, z: 50}
+  fallSpeed: 10
+  fallRotationSpeed: 180
+--- !u!65 &6258585759276085486
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816666052551352309}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 6.7645288, y: 1, z: 11.232401}
+  m_Center: {x: 0.024219751, y: 0, z: -0.30923545}
 --- !u!1001 &5535167690101472898
 PrefabInstance:
   m_ObjectHideFlags: 0
