@@ -172,8 +172,11 @@ namespace Player
             if (!_isHammerCocked)
             {
                 print("can't fire");
-                if (weaponAudio != null && dryFireSound != null) // play click sound when dry firing
+               if (weaponAudio != null && dryFireSound != null)
+                {
+                    weaponAudio.pitch = 1f;
                     weaponAudio.PlayOneShot(dryFireSound);
+                }
                 return;
             }
 
@@ -221,7 +224,11 @@ namespace Player
             }
 
             // Create raycast + shot
-            if (weaponAudio != null && fireSound != null) weaponAudio.PlayOneShot(fireSound);
+            if (weaponAudio != null && fireSound != null)
+            {
+                weaponAudio.pitch = UnityEngine.Random.Range(0.9f, 1.1f);
+                weaponAudio.PlayOneShot(fireSound);
+            }
             Vector3 shotOrigin = playerCamera.transform.position;
             Vector3 shotDirection = playerCamera.transform.forward;
             bool hitEnemy = false;
@@ -278,7 +285,11 @@ namespace Player
             // cock hammer
             _isHammerCocked = true;
             if (gunAnimator != null) gunAnimator.SetBool(HammerPullBool, true);
-            if (weaponAudio != null && cockingSound != null) weaponAudio.PlayOneShot(cockingSound);
+            if (weaponAudio != null && cockingSound != null)
+            {
+                weaponAudio.pitch = 1f;
+                weaponAudio.PlayOneShot(cockingSound);
+            }
         }
 
         public void OnHammerPullFinished() 
