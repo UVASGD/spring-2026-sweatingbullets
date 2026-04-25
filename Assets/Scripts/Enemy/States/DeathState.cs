@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityHFSM;
+using System.Collections;
 
 namespace Enemy.States {
     public class DeathState : EnemyStateBase
@@ -14,6 +15,12 @@ namespace Enemy.States {
             Agent.enabled = false;
             
             Enemy.isDead = true;
+            Enemy.StartCoroutine(DelayedWin());
+        }
+        private IEnumerator DelayedWin()
+        {
+            yield return new WaitForSecondsRealtime(1.5f);
+            GameManager.Instance.ShowWinScreen();
         }
     }
 }

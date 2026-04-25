@@ -33,12 +33,12 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8836598305803269848}
   - {fileID: 1485465592495980325}
   - {fileID: 945558255086644400}
   - {fileID: 5715066168460663934}
   - {fileID: 6523583175904775126}
   - {fileID: 7510036600383057621}
+  - {fileID: 8836598305803269848}
   m_Father: {fileID: 6560352793576388504}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &2665164353938529551
@@ -159,7 +159,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CameraGunplayEffects
   weaponController: {fileID: 1972240372808292004}
   playerCamera: {fileID: 2665164353938529551}
-  gunTransform: {fileID: 8836598305803269848}
+  gunTransform: {fileID: 0}
   nervesManager: {fileID: 1951296940851745258}
   adsFOV: 55
   fovLerpSpeed: 10
@@ -612,7 +612,13 @@ MonoBehaviour:
   enableFootstepSounds: 1
   footstepTriggeringMode: 0
   stepTiming: 0.15
-  footstepSoundSet: []
+  footstepSoundSet:
+  - profileTriggerType: 0
+    _Materials: []
+    _physicMaterials: []
+    _Layers: []
+    footstepClips:
+    - {fileID: 8300000, guid: b73d02b75a60b4630884f279da48ca5e, type: 3}
   enableHeadbob: 1
   headbobSpeed: 3
   headbobPower: 2
@@ -837,7 +843,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player.NervesVisualEffectsController
   postProcessVolume: {fileID: 0}
   cameraTransform: {fileID: 4891447724146741571}
-  gunModelTransform: {fileID: 8836598305803269848}
+  gunModelTransform: {fileID: 0}
   nervesManager: {fileID: 1951296940851745258}
   maxVignetteIntensity: 0.95
   maxDesaturation: -50
@@ -877,6 +883,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  _currentNervesLevel: 0
 --- !u!114 &814917307109214219
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1587,9 +1594,21 @@ PrefabInstance:
       value: gun_viewmodel
       objectReference: {fileID: 0}
     - target: {fileID: 7419700781158938212, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
+      propertyPath: fireSound
+      value: 
+      objectReference: {fileID: 8300000, guid: cdd970955677f4d119efe48613e8dcde, type: 3}
+    - target: {fileID: 7419700781158938212, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
       propertyPath: aimPosition
       value: 
       objectReference: {fileID: 5715066168460663934}
+    - target: {fileID: 7419700781158938212, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
+      propertyPath: cockingSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 7a16d8d9742a742a48f4b64389818274, type: 3}
+    - target: {fileID: 7419700781158938212, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
+      propertyPath: dryFireSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 8c9665b84c6624ce5a767fd89517b070, type: 3}
     - target: {fileID: 7419700781158938212, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
       propertyPath: playerCamera
       value: 
