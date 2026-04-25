@@ -76,10 +76,14 @@ namespace Player
         [Range(0f, 0.5f)]
         public float maxTriggerDelay = 0.15f;
 
+        [Tooltip("ADS duration at 100 nerves, from hip-fire position to full ADS.")]
+        [SerializeField] private float fullNervesAdsDurationSeconds = 1f;
+
         public float aimSpeed = 25f;
         public float range = 100f;
         private bool _isHammerCocked = false;
         private bool _isFiring = false;
+        private float _fullHipToAdsDistance;
 
         public bool
             canFireWeapon =
@@ -93,6 +97,7 @@ namespace Player
                     HipFirePosition.localPosition.z - aimPosition.localPosition.z -
                     0.5f /*included some offset for customization*/);
             _originalSmokeLocalPos = smokeSpawnPoint.localPosition; // cache hip-fire local position
+            _fullHipToAdsDistance = Vector3.Distance(HipFirePosition.localPosition, aimPosition.localPosition);
 
         }
 
@@ -101,11 +106,12 @@ namespace Player
             // aiming button held
             if (_isAiming && transform.localPosition != aimPosition.localPosition)
             {
+                float adsSpeed = GetNervesScaledAdsSpeed();
                 transform.localPosition = Vector3.MoveTowards(transform.localPosition, aimPosition.localPosition,
-                    aimSpeed * Time.deltaTime);
+                    adsSpeed * Time.deltaTime);
                 // why is localposition used here and regular position is used in the next if statement? Don't ask me. Because it works that way. lol
                 smokeSpawnPoint.localPosition = Vector3.MoveTowards(smokeSpawnPoint.localPosition,
-                    aimPosition.localPosition - new Vector3(0, 0, _hipToAimZOffset), aimSpeed * Time.deltaTime);
+                    aimPosition.localPosition - new Vector3(0, 0, _hipToAimZOffset), adsSpeed * Time.deltaTime);
             }
 
             // aiming button let go
@@ -115,6 +121,21 @@ namespace Player
                     aimSpeed * Time.deltaTime);
                 smokeSpawnPoint.localPosition = _originalSmokeLocalPos;
             }
+        }
+
+        private float GetNervesScaledAdsSpeed()
+        {
+            if (nervesManager == null || _fullHipToAdsDistance <= 0f || aimSpeed <= 0f)
+                return aimSpeed;
+
+            float baseAdsDuration = _fullHipToAdsDistance / aimSpeed;
+            float nervesNormalized = Mathf.Clamp01(nervesManager.currentNerves / 100f);
+            float effectiveAdsDuration = Mathf.Lerp(
+                baseAdsDuration,
+                Mathf.Max(0.001f, fullNervesAdsDurationSeconds),
+                nervesNormalized);
+
+            return _fullHipToAdsDistance / effectiveAdsDuration;
         }
 
         private void OnEnable()
