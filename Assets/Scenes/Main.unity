@@ -787,6 +787,24 @@ MonoBehaviour:
     tile: {fileID: 11400000, guid: fa77717a668013540a2a1636972a970b, type: 2}
     rotation: 0
   playerPrefab: {fileID: 8739283196448006463, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+  gunPickupPrefab: {fileID: 886342007907028130, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
+  bulletPickupPrefab: {fileID: 7002000000000000001, guid: 924d9974cb37434b85f8e782b0c91320, type: 3}
+  gunPickupSpawnOffset: {x: 1.25, y: 0.45, z: 0.75}
+  bulletPickupSpawnOffset: {x: -2.1, y: 0.7, z: 0.9}
+  gunPickupScale: {x: 0.2, y: 0.2, z: 0.2}
+  startingBulletPickupCount: 6
+  startingBulletPickupAmount: 1
+  bulletPickupSpacing: 0.6
+  randomizeBulletPickupPlacement: 1
+  useBulletPickupSeed: 0
+  bulletPickupSeed: 0
+  bulletPickupDistanceRange: {x: 1.8, y: 2.8}
+  bulletPickupAngleSpread: 70
+  bulletPickupLateralJitter: 0.25
+  bulletPickupYawJitter: 25
+  pickupGroundProbeHeight: 6
+  pickupGroundProbeDistance: 20
+  pickupGroundClearance: 0.02
   fencePrefab: {fileID: 3564778555597562438, guid: c94fda9ecc6860c4190c40bbd8ba38e6, type: 3}
   pathTileDefinition: {fileID: 11400000, guid: 02fb13fe9dd2300418e80b24808d4149, type: 2}
   spawnTileDefinition: {fileID: 11400000, guid: fa77717a668013540a2a1636972a970b, type: 2}

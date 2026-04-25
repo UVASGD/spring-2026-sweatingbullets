@@ -425,6 +425,7 @@ GameObject:
   - component: {fileID: 9146765483570476057}
   - component: {fileID: 3051611729581224858}
   - component: {fileID: 3368915453289956988}
+  - component: {fileID: 6100000000000000001}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -432,6 +433,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &6100000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8739283196448006463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24dbae98ad4f401484b8fa5f63405606, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  weaponController: {fileID: 1972240372808292004}
+  interactAction: {fileID: 0}
+  searchRadius: 4
+  pickupAudio: {fileID: 0}
 --- !u!4 &6560352793576388504
 Transform:
   m_ObjectHideFlags: 0
@@ -1599,7 +1616,7 @@ PrefabInstance:
       objectReference: {fileID: 8300000, guid: cdd970955677f4d119efe48613e8dcde, type: 3}
     - target: {fileID: 7419700781158938212, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
       propertyPath: aimPosition
-      value: 
+      value:
       objectReference: {fileID: 5715066168460663934}
     - target: {fileID: 7419700781158938212, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
       propertyPath: cockingSound
@@ -1625,6 +1642,18 @@ PrefabInstance:
       propertyPath: smokeSpawnPoint
       value: 
       objectReference: {fileID: 7510036600383057621}
+    - target: {fileID: 7419700781158938212, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
+      propertyPath: viewmodelRoot
+      value:
+      objectReference: {fileID: 8836598305803269848}
+    - target: {fileID: 7419700781158938212, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
+      propertyPath: startsWithWeapon
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7419700781158938212, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
+      propertyPath: startingAmmo
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.AI.Navigation;
 using UnityEngine;
 using Enemy;
+using Player;
 
 namespace Tiles
 {
@@ -49,6 +50,32 @@ namespace Tiles
         
         // ---- To spawn the player in the spawn location ----
         public GameObject playerPrefab;
+
+        [Header("Starting Pickups")]
+        [SerializeField] private GameObject gunPickupPrefab;
+        [SerializeField] private GameObject bulletPickupPrefab;
+        [SerializeField, Min(0)] private int startingGunPickupCount = 2;
+        [SerializeField] private float gunPickupHeight = 0.45f;
+        [SerializeField, Min(0f)] private float gunPickupCellJitter = 1.5f;
+        [SerializeField] private Vector3 bulletPickupSpawnOffset = new Vector3(-2.1f, 0.7f, 0.9f);
+        [SerializeField] private Vector3 gunPickupScale = new Vector3(0.2f, 0.2f, 0.2f);
+        [SerializeField, Min(0)] private int startingBulletPickupCount = 1;
+        [Tooltip("Ammo granted by each spawned bullet pickup.")]
+        [SerializeField] private int startingBulletPickupAmount = 6;
+        [SerializeField] private float bulletPickupSpacing = 0.6f;
+        [SerializeField] private bool randomizeBulletPickupPlacement = true;
+        [SerializeField] private bool useBulletPickupSeed = false;
+        [SerializeField] private int bulletPickupSeed = 0;
+        [SerializeField] private Vector2 bulletPickupDistanceRange = new Vector2(1.8f, 2.8f);
+        [SerializeField] private Vector2Int nearBulletPickupCountRange = new Vector2Int(2, 3);
+        [SerializeField, Min(0)] private int scatteredBulletMinSpawnDistanceCells = 2;
+        [SerializeField, Min(0f)] private float scatteredBulletCellJitter = 1.5f;
+        [SerializeField, Range(0f, 360f)] private float bulletPickupAngleSpread = 70f;
+        [SerializeField] private float bulletPickupLateralJitter = 0.25f;
+        [SerializeField, Range(0f, 180f)] private float bulletPickupYawJitter = 25f;
+        [SerializeField] private float pickupGroundProbeHeight = 6f;
+        [SerializeField] private float pickupGroundProbeDistance = 20f;
+        [SerializeField] private float pickupGroundClearance = 0.02f;
 
         [Header("Boundaries")]
         public GameObject fencePrefab;
@@ -146,6 +173,8 @@ namespace Tiles
             GameObject spawnTile = GameObject.FindWithTag("Spawn");
             GameObject player = GameObject.FindWithTag("Player");
             player.transform.position = spawnTile.transform.position + Vector3.up * 3;
+            SpawnStartingPickups(spawnTile.transform.position);
+
             Vector2Int playerGrid = WorldToGrid(spawnTile.transform.position);
 
             for (int i = 0; i < enemiesToSpawn; i++)
@@ -298,14 +327,6 @@ namespace Tiles
                     Instantiate(fencePrefab, rightPos, Quaternion.Euler(0, 90, 0), transform);
                 }
             }
-
-        Vector2Int WorldToGrid(Vector3 worldPos)
-        {
-            return new Vector2Int(
-                Mathf.RoundToInt(worldPos.x / tileSize),
-                Mathf.RoundToInt(worldPos.z / tileSize)
-            );
-        }
 
         Vector2Int GetOppositeEdgeDirection(Vector2Int playerPos)
         {
@@ -960,6 +981,319 @@ namespace Tiles
             }
         }
 
+        void SpawnStartingPickups(Vector3 spawnTilePosition)
+        {
+            System.Random bulletRandom = useBulletPickupSeed
+                ? new System.Random(bulletPickupSeed)
+                : new System.Random();
+
+            System.Random gunRandom = new System.Random();
+            List<Vector2Int> gunPickupCells = GetRandomGunPickupCells(gunRandom);
+            for (int i = 0; i < startingGunPickupCount && i < gunPickupCells.Count; i++)
+            {
+                SpawnPickup(
+                    gunPickupPrefab,
+                    PickupItem.PickupType.Gun,
+                    0,
+                    GetGunPickupPosition(gunPickupCells[i], gunRandom),
+                    GetGunPickupRotation(gunRandom),
+                    gunPickupScale,
+                    "Gun Pickup");
+            }
+
+            int nearCountMin = Mathf.Max(0, Mathf.Min(nearBulletPickupCountRange.x, nearBulletPickupCountRange.y));
+            int nearCountMax = Mathf.Max(nearCountMin, Mathf.Max(nearBulletPickupCountRange.x, nearBulletPickupCountRange.y));
+            int nearPickupCount = startingBulletPickupCount <= 0
+                ? 0
+                : Mathf.Clamp(bulletRandom.Next(nearCountMin, nearCountMax + 1), 0, startingBulletPickupCount);
+
+            for (int i = 0; i < nearPickupCount; i++)
+            {
+                SpawnPickup(
+                    bulletPickupPrefab,
+                    PickupItem.PickupType.Bullets,
+                    startingBulletPickupAmount,
+                    GetBulletPickupPosition(spawnTilePosition, i, nearPickupCount, bulletRandom),
+                    GetBulletPickupRotation(bulletRandom),
+                    Vector3.one,
+                    "Bullet Pickup");
+            }
+
+            int scatteredPickupCount = startingBulletPickupCount - nearPickupCount;
+            List<Vector2Int> scatterCandidates = GetScatteredBulletPickupCells(spawnTilePosition, bulletRandom);
+            for (int i = 0; i < scatteredPickupCount; i++)
+            {
+                Vector3 position = i < scatterCandidates.Count
+                    ? GetScatteredBulletPickupPosition(scatterCandidates[i], bulletRandom)
+                    : GetBulletPickupPosition(spawnTilePosition, nearPickupCount + i, startingBulletPickupCount, bulletRandom);
+
+                SpawnPickup(
+                    bulletPickupPrefab,
+                    PickupItem.PickupType.Bullets,
+                    startingBulletPickupAmount,
+                    position,
+                    GetBulletPickupRotation(bulletRandom),
+                    Vector3.one,
+                    "Bullet Pickup");
+            }
+        }
+
+        List<Vector2Int> GetRandomGunPickupCells(System.Random rng)
+        {
+            List<Vector2Int> candidates = new List<Vector2Int>();
+            for (int x = 0; x < gridSizeX; x++)
+            {
+                for (int y = 0; y < gridSizeY; y++)
+                {
+                    Vector2Int cell = new Vector2Int(x, y);
+                    if (buildingCells.Contains(cell) || reservedMapFeatureCells.Contains(cell))
+                        continue;
+
+                    candidates.Add(cell);
+                }
+            }
+
+            Shuffle(candidates, rng);
+            return candidates;
+        }
+
+        Vector3 GetGunPickupPosition(Vector2Int cell, System.Random rng)
+        {
+            float maxJitter = Mathf.Min(Mathf.Max(0f, gunPickupCellJitter), tileSize * 0.45f);
+            Vector3 jitter = new Vector3(
+                RandomRange(rng, -maxJitter, maxJitter),
+                0f,
+                RandomRange(rng, -maxJitter, maxJitter));
+
+            return GridToWorld(cell) + Vector3.up * gunPickupHeight + jitter;
+        }
+
+        Quaternion GetGunPickupRotation(System.Random rng)
+        {
+            return Quaternion.Euler(0f, RandomRange(rng, 0f, 360f), 90f);
+        }
+
+        Vector3 GetBulletPickupPosition(Vector3 spawnTilePosition, int index, int count, System.Random rng)
+        {
+            Vector3 baseOffset = bulletPickupSpawnOffset;
+            Vector3 horizontalOffset = new Vector3(baseOffset.x, 0f, baseOffset.z);
+            Vector3 forwardDirection = horizontalOffset.sqrMagnitude > 0.001f
+                ? horizontalOffset.normalized
+                : Vector3.forward;
+
+            Vector3 sideDirection = Vector3.Cross(Vector3.up, forwardDirection);
+            float centeredIndex = index - (count - 1) * 0.5f;
+
+            if (!randomizeBulletPickupPlacement)
+                return spawnTilePosition + baseOffset + sideDirection * centeredIndex * bulletPickupSpacing;
+
+            float distanceMin = Mathf.Min(bulletPickupDistanceRange.x, bulletPickupDistanceRange.y);
+            float distanceMax = Mathf.Max(bulletPickupDistanceRange.x, bulletPickupDistanceRange.y);
+            float distance = RandomRange(rng, distanceMin, distanceMax);
+            float angle = RandomRange(rng, -bulletPickupAngleSpread * 0.5f, bulletPickupAngleSpread * 0.5f);
+            Vector3 spreadDirection = Quaternion.Euler(0f, angle, 0f) * forwardDirection;
+            float lateralOffset = centeredIndex * bulletPickupSpacing
+                + RandomRange(rng, -bulletPickupLateralJitter, bulletPickupLateralJitter);
+
+            return spawnTilePosition
+                + Vector3.up * baseOffset.y
+                + spreadDirection * distance
+                + sideDirection * lateralOffset;
+        }
+
+        Quaternion GetBulletPickupRotation(System.Random rng)
+        {
+            float yaw = randomizeBulletPickupPlacement
+                ? RandomRange(rng, -bulletPickupYawJitter, bulletPickupYawJitter)
+                : 0f;
+
+            return Quaternion.Euler(0f, yaw, 90f);
+        }
+
+        float RandomRange(System.Random rng, float min, float max)
+        {
+            if (Mathf.Approximately(min, max))
+                return min;
+
+            return Mathf.Lerp(min, max, (float)rng.NextDouble());
+        }
+
+        List<Vector2Int> GetScatteredBulletPickupCells(Vector3 spawnTilePosition, System.Random rng)
+        {
+            Vector2Int spawnCell = WorldToGrid(spawnTilePosition);
+            int minDistance = Mathf.Max(0, scatteredBulletMinSpawnDistanceCells);
+            List<Vector2Int> candidates = new List<Vector2Int>();
+            HashSet<Vector2Int> seen = new HashSet<Vector2Int>();
+
+            AddScatteredBulletPickupCandidates(mainRoadCells, spawnCell, minDistance, candidates, seen);
+            AddScatteredBulletPickupCandidates(alleyCells, spawnCell, minDistance, candidates, seen);
+
+            Shuffle(candidates, rng);
+            return candidates;
+        }
+
+        void AddScatteredBulletPickupCandidates(IEnumerable<Vector2Int> cells, Vector2Int spawnCell, int minDistance,
+            List<Vector2Int> candidates, HashSet<Vector2Int> seen)
+        {
+            foreach (Vector2Int cell in cells)
+            {
+                if (!InGrid(cell) || reservedMapFeatureCells.Contains(cell) || !seen.Add(cell))
+                    continue;
+
+                int spawnDistance = Mathf.Abs(cell.x - spawnCell.x) + Mathf.Abs(cell.y - spawnCell.y);
+                if (spawnDistance <= minDistance)
+                    continue;
+
+                candidates.Add(cell);
+            }
+        }
+
+        Vector3 GetScatteredBulletPickupPosition(Vector2Int cell, System.Random rng)
+        {
+            float maxJitter = Mathf.Min(Mathf.Max(0f, scatteredBulletCellJitter), tileSize * 0.45f);
+            Vector3 jitter = new Vector3(
+                RandomRange(rng, -maxJitter, maxJitter),
+                0f,
+                RandomRange(rng, -maxJitter, maxJitter));
+
+            return GridToWorld(cell) + Vector3.up * bulletPickupSpawnOffset.y + jitter;
+        }
+
+        void Shuffle<T>(List<T> list, System.Random rng)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
+        }
+
+        void SpawnPickup(GameObject prefab, PickupItem.PickupType pickupType, int ammoAmount, Vector3 position,
+            Quaternion rotation, Vector3 worldScale, string fallbackName)
+        {
+            GameObject pickup = prefab != null
+                ? Instantiate(prefab, position, rotation, transform)
+                : CreateFallbackPickup(pickupType, ammoAmount, position, rotation, worldScale, fallbackName);
+
+            if (prefab == null || pickupType == PickupItem.PickupType.Gun)
+                pickup.transform.localScale = worldScale;
+
+            SetLayerRecursively(pickup, LayerMask.NameToLayer("Default"));
+            RemovePickupRigidbodies(pickup);
+            DisableWeaponControllersOnPickup(pickup);
+            EnsurePickupCollider(pickup, pickupType);
+            AlignPickupToGround(pickup, position);
+
+            PickupItem pickupItem = pickup.GetComponentInChildren<PickupItem>();
+            if (pickupItem == null)
+            {
+                pickupItem = pickup.AddComponent<PickupItem>();
+            }
+
+            pickupItem.Configure(pickupType, ammoAmount);
+        }
+
+        GameObject CreateFallbackPickup(PickupItem.PickupType pickupType, int ammoAmount, Vector3 position,
+            Quaternion rotation, Vector3 worldScale, string fallbackName)
+        {
+            PrimitiveType primitiveType = pickupType == PickupItem.PickupType.Gun
+                ? PrimitiveType.Cube
+                : PrimitiveType.Capsule;
+            GameObject pickup = GameObject.CreatePrimitive(primitiveType);
+            pickup.name = fallbackName;
+            pickup.transform.SetParent(transform);
+            pickup.transform.SetPositionAndRotation(position, rotation);
+            pickup.transform.localScale = worldScale;
+
+            Collider pickupCollider = pickup.GetComponent<Collider>();
+            if (pickupCollider != null)
+                pickupCollider.isTrigger = true;
+
+            PickupItem pickupItem = pickup.AddComponent<PickupItem>();
+            pickupItem.Configure(pickupType, ammoAmount);
+
+            return pickup;
+        }
+
+        void DisableWeaponControllersOnPickup(GameObject pickup)
+        {
+            WeaponController[] weaponControllers = pickup.GetComponentsInChildren<WeaponController>();
+            foreach (WeaponController weaponController in weaponControllers)
+                weaponController.enabled = false;
+        }
+
+        void RemovePickupRigidbodies(GameObject pickup)
+        {
+            Rigidbody[] rigidbodies = pickup.GetComponentsInChildren<Rigidbody>();
+            foreach (Rigidbody rb in rigidbodies)
+                Destroy(rb);
+        }
+
+        void SetLayerRecursively(GameObject target, int layer)
+        {
+            if (target == null || layer < 0)
+                return;
+
+            target.layer = layer;
+            foreach (Transform child in target.transform)
+                SetLayerRecursively(child.gameObject, layer);
+        }
+
+        void AlignPickupToGround(GameObject pickup, Vector3 probePosition)
+        {
+            if (pickup == null)
+                return;
+
+            Vector3 rayOrigin = probePosition + Vector3.up * pickupGroundProbeHeight;
+            if (!Physics.Raycast(
+                    rayOrigin,
+                    Vector3.down,
+                    out RaycastHit hit,
+                    pickupGroundProbeHeight + pickupGroundProbeDistance,
+                    Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore))
+            {
+                return;
+            }
+
+            Renderer[] renderers = pickup.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0)
+            {
+                pickup.transform.position = new Vector3(
+                    pickup.transform.position.x,
+                    hit.point.y + pickupGroundClearance,
+                    pickup.transform.position.z);
+                return;
+            }
+
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+                bounds.Encapsulate(renderers[i].bounds);
+
+            float lift = hit.point.y - bounds.min.y + pickupGroundClearance;
+            pickup.transform.position += Vector3.up * lift;
+        }
+
+        void EnsurePickupCollider(GameObject pickup, PickupItem.PickupType pickupType)
+        {
+            Collider[] colliders = pickup.GetComponentsInChildren<Collider>();
+            if (colliders.Length > 0)
+            {
+                foreach (Collider existingCollider in colliders)
+                {
+                    existingCollider.enabled = true;
+                    existingCollider.isTrigger = true;
+                }
+                return;
+            }
+
+            BoxCollider pickupCollider = pickup.AddComponent<BoxCollider>();
+            pickupCollider.isTrigger = true;
+            pickupCollider.size = pickupType == PickupItem.PickupType.Gun
+                ? new Vector3(1f, 0.5f, 2f)
+                : Vector3.one;
+        }
+
         // =====================================================================
         // Environment (unchanged from previous pipeline).
         // =====================================================================
@@ -1038,6 +1372,10 @@ namespace Tiles
         }
 
         Vector3 GridToWorld(Vector2Int p) => new Vector3(p.x * tileSize, 0, p.y * tileSize);
+
+        Vector2Int WorldToGrid(Vector3 p) => new Vector2Int(
+            Mathf.RoundToInt(p.x / tileSize),
+            Mathf.RoundToInt(p.z / tileSize));
 
         bool InGrid(Vector2Int p) => p.x >= 0 && p.x < gridSizeX && p.y >= 0 && p.y < gridSizeY;
 
