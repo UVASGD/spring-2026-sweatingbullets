@@ -101,7 +101,8 @@ namespace Tiles
         // ---- Runtime wiring ----
         public NavMeshSurface navMeshSurface;
         public GameObject enemy;
-        public int enemiesToSpawn = 1;
+        public List<Transform> spawnPoints;
+        public int enemiesToSpawn;
 
         // ---- Internal state ----
         private readonly HashSet<Vector2Int> mainRoadCells = new HashSet<Vector2Int>();
@@ -143,7 +144,7 @@ namespace Tiles
 
                 Vector3 worldPos = GridToWorld(spawnGrid);
                 GameObject clone = Instantiate(enemy, worldPos, Quaternion.identity);
-                clone.GetComponent<EnemyAI>().Init(GameObject.FindWithTag("Player"));
+                clone.GetComponent<EnemyAI>().Init(player);
             }
         }
 
