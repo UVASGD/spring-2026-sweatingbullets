@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TileDefinition
   prefab: {fileID: 3868361325805321971, guid: 4ec3922826e3c3f4e87cc834457a82e7, type: 3}
   spawnWeight: 5
-  north: 0
-  east: 1
-  south: 0
-  west: 1
+  posZ: 0
+  posX: 1
+  negZ: 0
+  negX: 1
+  category: 2

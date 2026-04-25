@@ -1,4 +1,5 @@
 using Enemy.States;
+using Player;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.AI;
@@ -33,11 +34,20 @@ namespace Enemy
         [SerializeField, Range(0, 360)] private float viewAngle = 120f;
         [SerializeField] private List<Vector3> viewOffsets;
 
+        [Header("Hearing")]
+        [SerializeField] private float hearingRange = 20f;
+        [SerializeField] private float gunshotHearingRange = 50f;
+
         public bool isDead;
+
+        private PlayerNoiseEmitter _noiseEmitter;
+        private Vector3 _lastHeardPosition;
+        private InvestigateState _investigateState;
         
         public void Init(GameObject p)
         {
             player = p;
+            _noiseEmitter = player.GetComponent<PlayerNoiseEmitter>();
             var shoot = weapon.GetComponent<Enemy.EnemyShoot>();
             if (shoot != null)
             {
@@ -51,16 +61,35 @@ namespace Enemy
             // Add states
             _stateMachine.AddState(EnemyState.Patrol, new PatrolState(false, this, 10, 2, 2,100000));
             _stateMachine.AddState(EnemyState.Alert, new PatrolState(false, this, 10, 3.0f, 0.5f, 5));
+            _investigateState = new InvestigateState(false, this);
             _stateMachine.AddState(EnemyState.Follow, new FollowState(false, this, player.transform));
             _stateMachine.AddState(EnemyState.Shoot, new ShootState(true, this, aimTime, weaponRange));
             _stateMachine.AddState(EnemyState.FollowUpToShoot, new FollowUpToShootState(true, this, player.transform, strafeDistance,5.0f));
+            _stateMachine.AddState(EnemyState.Investigate, _investigateState);
             _stateMachine.AddState(EnemyState.Dead, new DeathState(this));
 
             // --- Condition-based transitions ---
+
+            // Patrol: see player → Follow, hear player → Investigate
             _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Patrol, EnemyState.Follow,
                 (transition) => CanSeePlayer())
             );
 
+            _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Patrol, EnemyState.Investigate,
+                (transition) => CanHearPlayer() && !CanSeePlayer(),
+                onTransition: (transition) => _investigateState.SetTargetPosition(_lastHeardPosition))
+            );
+
+            // Investigate: see player → Follow, finished → Patrol, hear new noise → restart investigate
+            _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Investigate, EnemyState.Follow,
+                (transition) => CanSeePlayer())
+            );
+
+            _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Investigate, EnemyState.Patrol,
+                (transition) => _investigateState.IsFinished)
+            );
+
+            // Follow and combat transitions (unchanged)
             _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Follow, EnemyState.Shoot,
                 (transition) => PlayerInRange() && CanSeePlayer())
             );
@@ -74,9 +103,9 @@ namespace Enemy
             );
 
             _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.FollowUpToShoot, EnemyState.Shoot,
-                (transition) => PlayerInRange() && CanSeePlayer()) 
+                (transition) => PlayerInRange() && CanSeePlayer())
             );
-            
+
             _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.FollowUpToShoot, EnemyState.Follow,
                 (transition) => !PlayerInRange() && CanSeePlayer()
             ));
@@ -99,15 +128,18 @@ namespace Enemy
 
             _stateMachine.AddTriggerTransition(StateEvent.Died,
                 new Transition<EnemyState>(EnemyState.Patrol, EnemyState.Dead, forceInstantly: true));
-            
+
             _stateMachine.AddTriggerTransition(StateEvent.Died,
                 new Transition<EnemyState>(EnemyState.Follow, EnemyState.Dead, forceInstantly: true));
-            
+
             _stateMachine.AddTriggerTransition(StateEvent.Died,
                 new Transition<EnemyState>(EnemyState.Shoot, EnemyState.Dead, forceInstantly: true));
-            
+
             _stateMachine.AddTriggerTransition(StateEvent.Died,
                 new Transition<EnemyState>(EnemyState.FollowUpToShoot, EnemyState.Dead, forceInstantly: true));
+
+            _stateMachine.AddTriggerTransition(StateEvent.Died,
+                new Transition<EnemyState>(EnemyState.Investigate, EnemyState.Dead, forceInstantly: true));
 
 
             _stateMachine.SetStartState(EnemyState.Patrol);
@@ -227,6 +259,27 @@ namespace Enemy
             return false;
         }
 
+        private bool CanHearPlayer()
+        {
+            if (player == null || _noiseEmitter == null) return false;
+
+            float noise = _noiseEmitter.NoiseLevel;
+            if (noise <= 0f) return false;
+
+            float distance = Vector3.Distance(transform.position, player.transform.position);
+            float effectiveRange = _noiseEmitter.LastNoiseType == NoiseType.Gunshot
+                ? gunshotHearingRange
+                : hearingRange;
+
+            // Scale range by noise intensity
+            if (distance <= effectiveRange * noise)
+            {
+                _lastHeardPosition = player.transform.position;
+                return true;
+            }
+
+            return false;
+        }
 
         private bool PlayerInRange()
         {

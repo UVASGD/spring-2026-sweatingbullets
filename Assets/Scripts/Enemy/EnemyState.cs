@@ -7,6 +7,7 @@
         Shoot,
         Follow,
         FollowUpToShoot,
+        Investigate,
         Dead,
         Any,
     }
