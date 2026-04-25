@@ -7,16 +7,42 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private WinScreen winScreen;
 
+    public static int RoundCount { get; set; } = 1;
+
+    public static bool IsGameOver { get; private set; }
+
     void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
+        DontDestroyOnLoad(gameObject);
         winScreen = FindObjectOfType<WinScreen>(true);
     }
 
-    public static bool IsGameOver { get; private set; }
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        IsGameOver = false;
+        winScreen = FindObjectOfType<WinScreen>(true);
+    }
+
     public void ShowWinScreen()
     {
         IsGameOver = true;
-        winScreen.ShowWinScreen(); 
+        winScreen.ShowWinScreen(RoundCount);
     }
 }

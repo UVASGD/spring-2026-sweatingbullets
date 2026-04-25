@@ -5,14 +5,14 @@ using System.Collections;
 
 public class WinScreen : MonoBehaviour
 {
-    public void ShowWinScreen()
+    public void ShowWinScreen(int round)
     {
         Debug.Log("ShowWinScreen called");
         gameObject.SetActive(true);
-        StartCoroutine(InitAfterFrame());
+        StartCoroutine(InitAfterFrame(round));
     }
 
-    private IEnumerator InitAfterFrame()
+    private IEnumerator InitAfterFrame(int round)
     {
         Debug.Log("InitAfterFrame started");
         yield return null;
@@ -24,11 +24,15 @@ public class WinScreen : MonoBehaviour
         var overlay = root.Q("Root");
         Debug.Log("Overlay found: " + (overlay != null));
 
-        var restartButton = root.Q<Button>("RestartButton");
-        var quitButton    = root.Q<Button>("QuitButton");
+        var restartButton   = root.Q<Button>("RestartButton");
+        var nextRoundButton = root.Q<Button>("NextRoundButton");
+        var quitButton      = root.Q<Button>("QuitButton");
+        var difficultyLabel = root.Q<Label>("DifficultyLabel");
 
-        if (restartButton != null) restartButton.clicked += RestartGame;
-        if (quitButton != null)    quitButton.clicked += QuitGame;
+        if (restartButton != null)   restartButton.clicked   += RestartGame;
+        if (nextRoundButton != null) nextRoundButton.clicked += NextRound;
+        if (quitButton != null)      quitButton.clicked      += QuitGame;
+        if (difficultyLabel != null) difficultyLabel.text = $"Difficulty {round}";
 
         if (overlay == null) { yield break; }
 
@@ -49,9 +53,17 @@ public class WinScreen : MonoBehaviour
         UnityEngine.Cursor.visible = true;
     }
 
+    private void NextRound()
+    {
+        Time.timeScale = 1f;
+        GameManager.RoundCount++;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
     private void RestartGame()
     {
         Time.timeScale = 1f;
+        GameManager.RoundCount = 1;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
