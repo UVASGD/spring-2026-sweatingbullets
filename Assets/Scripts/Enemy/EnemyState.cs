@@ -3,6 +3,7 @@
     public enum EnemyState
     {
         Patrol,
+        Alert,
         Shoot,
         Follow,
         FollowUpToShoot,

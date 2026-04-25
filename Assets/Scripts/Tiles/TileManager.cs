@@ -23,10 +23,10 @@ namespace Tiles
 
         public enum Direction
         {
-            North,
-            East,
-            South,
-            West
+            PosZ,
+            PosX,
+            NegZ,
+            NegX
         }
 
         void Start()
@@ -122,10 +122,10 @@ namespace Tiles
             UpdateFrontier(cell + Vector2Int.left);
 
             // Link neighbors (your existing logic, slightly compressed)
-            LinkNeighbor(tileComponent, cell + Vector2Int.up, Direction.North);
-            LinkNeighbor(tileComponent, cell + Vector2Int.down, Direction.South);
-            LinkNeighbor(tileComponent, cell + Vector2Int.right, Direction.East);
-            LinkNeighbor(tileComponent, cell + Vector2Int.left, Direction.West);
+            LinkNeighbor(tileComponent, cell + Vector2Int.up, Direction.PosZ);
+            LinkNeighbor(tileComponent, cell + Vector2Int.down, Direction.NegZ);
+            LinkNeighbor(tileComponent, cell + Vector2Int.right, Direction.PosX);
+            LinkNeighbor(tileComponent, cell + Vector2Int.left, Direction.NegX);
         }
 
         void UpdateFrontier(Vector2Int pos)
@@ -142,21 +142,21 @@ namespace Tiles
             {
                 switch (dir)
                 {
-                    case Direction.North:
-                        tile.north = neighbor;
-                        neighbor.south = tile;
+                    case Direction.PosZ:
+                        tile.posZ = neighbor;
+                        neighbor.negZ = tile;
                         break;
-                    case Direction.South:
-                        tile.south = neighbor;
-                        neighbor.north = tile;
+                    case Direction.NegZ:
+                        tile.negZ = neighbor;
+                        neighbor.posZ = tile;
                         break;
-                    case Direction.East:
-                        tile.east = neighbor;
-                        neighbor.west = tile;
+                    case Direction.PosX:
+                        tile.posX = neighbor;
+                        neighbor.negX = tile;
                         break;
-                    case Direction.West:
-                        tile.west = neighbor;
-                        neighbor.east = tile;
+                    case Direction.NegX:
+                        tile.negX = neighbor;
+                        neighbor.posX = tile;
                         break;
                 }
             }
@@ -165,32 +165,32 @@ namespace Tiles
         bool MatchesAllNeighbors(TileDefinition def, Vector2Int cell)
         {
             int score = 0;
-            // Check North
-            if (_tiles.TryGetValue(cell + Vector2Int.up, out Tile northTile) &&
-                !HardCompatible(def, northTile.definition, Direction.North)) score++;
+            // Check +Z
+            if (_tiles.TryGetValue(cell + Vector2Int.up, out Tile posZTile) &&
+                !HardCompatible(def, posZTile.definition, Direction.PosZ)) score++;
 
-            // Check South
-            if (_tiles.TryGetValue(cell + Vector2Int.down, out Tile southTile) &&
-                !HardCompatible(def, southTile.definition, Direction.South)) score++;
+            // Check -Z
+            if (_tiles.TryGetValue(cell + Vector2Int.down, out Tile negZTile) &&
+                !HardCompatible(def, negZTile.definition, Direction.NegZ)) score++;
 
-            // Check East
-            if (_tiles.TryGetValue(cell + Vector2Int.right, out Tile eastTile) &&
-                !HardCompatible(def, eastTile.definition, Direction.East)) score++;
+            // Check +X
+            if (_tiles.TryGetValue(cell + Vector2Int.right, out Tile posXTile) &&
+                !HardCompatible(def, posXTile.definition, Direction.PosX)) score++;
 
-            // Check West
-            if (_tiles.TryGetValue(cell + Vector2Int.left, out Tile westTile) &&
-                !HardCompatible(def, westTile.definition, Direction.West)) score++;
+            // Check -X
+            if (_tiles.TryGetValue(cell + Vector2Int.left, out Tile negXTile) &&
+                !HardCompatible(def, negXTile.definition, Direction.NegX)) score++;
 
             return score <= 1;
         }
 
         bool HardCompatible(TileDefinition a, TileDefinition b, Direction dir)
         {
-            // Your existing logic is correct
-            if (dir == Direction.East) return a.east == b.west;
-            if (dir == Direction.South) return a.south == b.north;
-            if (dir == Direction.West) return a.west == b.east;
-            if (dir == Direction.North) return a.north == b.south;
+            // Edge on `a` side facing `dir` must match the opposite edge on `b`.
+            if (dir == Direction.PosX) return a.posX == b.negX;
+            if (dir == Direction.NegZ) return a.negZ == b.posZ;
+            if (dir == Direction.NegX) return a.negX == b.posX;
+            if (dir == Direction.PosZ) return a.posZ == b.negZ;
             return false;
         }
 
@@ -204,26 +204,26 @@ namespace Tiles
 
                 Vector3 tileWorldPos = new Vector3(gridPos.x * tileSize, 0, gridPos.y * tileSize);
 
-                // Check North
-                if (ShouldPlaceWall(gridPos + Vector2Int.up, tile.definition.north))
+                // Check +Z
+                if (ShouldPlaceWall(gridPos + Vector2Int.up, tile.definition.posZ))
                 {
                     SpawnWall(tileWorldPos, Vector3.forward);
                 }
 
-                // Check South
-                if (ShouldPlaceWall(gridPos + Vector2Int.down, tile.definition.south))
+                // Check -Z
+                if (ShouldPlaceWall(gridPos + Vector2Int.down, tile.definition.negZ))
                 {
                     SpawnWall(tileWorldPos, Vector3.back);
                 }
 
-                // Check East
-                if (ShouldPlaceWall(gridPos + Vector2Int.right, tile.definition.east))
+                // Check +X
+                if (ShouldPlaceWall(gridPos + Vector2Int.right, tile.definition.posX))
                 {
                     SpawnWall(tileWorldPos, Vector3.right);
                 }
 
-                // Check West
-                if (ShouldPlaceWall(gridPos + Vector2Int.left, tile.definition.west))
+                // Check -X
+                if (ShouldPlaceWall(gridPos + Vector2Int.left, tile.definition.negX))
                 {
                     SpawnWall(tileWorldPos, Vector3.left);
                 }

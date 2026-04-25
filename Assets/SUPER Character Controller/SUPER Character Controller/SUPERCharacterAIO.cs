@@ -1241,41 +1241,17 @@ public class SUPERCharacterAIO : MonoBehaviour{
             }
         }
     }
+
     public void CallFootstepClip(){
         if(playerAudioSource){
             if(enableFootstepSounds && footstepSoundSet.Any()){
-                for(int i = 0; i< footstepSoundSet.Count(); i++){
-                
-                    if(footstepSoundSet[i].profileTriggerType == MatProfileType.Material){
-                        if(footstepSoundSet[i]._Materials.Contains(currentGroundInfo.groundMaterial)){
-                            currentClipSet = footstepSoundSet[i].footstepClips;
-                            break;
-                        }else if(i == footstepSoundSet.Count-1){
-                            currentClipSet = null;  
-                        }
-                    }
-
-                    else if(footstepSoundSet[i].profileTriggerType == MatProfileType.physicMaterial){
-                        if(footstepSoundSet[i]._physicMaterials.Contains(currentGroundInfo.groundPhysicMaterial)){
-                            currentClipSet = footstepSoundSet[i].footstepClips;
-                            break;
-                        }else if(i == footstepSoundSet.Count-1){
-                            currentClipSet = null;  
-                        }
-                    }
-
-                    else if(footstepSoundSet[i].profileTriggerType == MatProfileType.terrainLayer){
-                        if(footstepSoundSet[i]._Layers.Contains(currentGroundInfo.groundLayer)){
-                            currentClipSet = footstepSoundSet[i].footstepClips;
-                            break;
-                        }else if(i == footstepSoundSet.Count-1){
-                            currentClipSet = null;  
-                        }
-                    }
-                }
+                currentClipSet = footstepSoundSet[0].footstepClips;
+                print("currentClipSet");
                 
                 if(currentClipSet!=null && currentClipSet.Any()){
+                    playerAudioSource.volume = 1;
                     playerAudioSource.PlayOneShot(currentClipSet[Random.Range(0,currentClipSet.Count())]);
+                    print("one shot " + currentClipSet[Random.Range(0,currentClipSet.Count())].name);
                 }
             }
         }

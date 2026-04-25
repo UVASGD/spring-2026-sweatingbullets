@@ -7,10 +7,10 @@ namespace Tiles
         public Vector2Int gridPosition;
         public TileDefinition definition;
 
-        public Tile north;
-        public Tile east;
-        public Tile south;
-        public Tile west;
+        public Tile posZ;
+        public Tile posX;
+        public Tile negZ;
+        public Tile negX;
     }
 
     [System.Serializable]
@@ -28,17 +28,17 @@ namespace Tiles
         // This helper gets the edge type considering the rotation
         public TileDefinition.EdgeType GetEdge(int directionIndex)
         {
-            // 0=North, 1=East, 2=South, 3=West
-            // We rotate the requested direction "backwards" by our current rotation to find the original edge
-            // E.g. If rotated 90 (index 1), and we ask for North (0), we actually need the original West (3) side.
+            // 0 = posZ (forward), 1 = posX (right), 2 = negZ (back), 3 = negX (left)
+            // We rotate the requested direction "backwards" by our current rotation to find the original edge.
+            // E.g. if rotated 90 (index 1) and we ask for posZ (0), the original negX (3) side now faces posZ.
             int originalSideIndex = (directionIndex - rotationIndex + 4) % 4;
 
             switch (originalSideIndex)
             {
-                case 0: return definition.north;
-                case 1: return definition.east;
-                case 2: return definition.south;
-                case 3: return definition.west;
+                case 0: return definition.posZ;
+                case 1: return definition.posX;
+                case 2: return definition.negZ;
+                case 3: return definition.negX;
                 default: return TileDefinition.EdgeType.Closed;
             }
         }

@@ -43,7 +43,8 @@ public class PauseMenuController : MonoBehaviour
 
     private void Update()
     {
-        // NEW INPUT SYSTEM: ESC key
+        if (GameManager.IsGameOver) return; // ← block pause menu after win
+
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             if (isPaused) ResumeGame();

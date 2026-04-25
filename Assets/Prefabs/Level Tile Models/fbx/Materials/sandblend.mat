@@ -45,6 +45,18 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _CobbleAO:
+        m_Texture: {fileID: 2800000, guid: 2300aee8749214a9ca729af0093fafe8, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CobbleNormal:
+        m_Texture: {fileID: 2800000, guid: c32e2dccecc3f41889a5ff54a32ffc35, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CobbleTex:
+        m_Texture: {fileID: 2800000, guid: c26976c815ac04c4f84911f691d3310d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -62,11 +74,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainAO:
-        m_Texture: {fileID: 2800000, guid: 0c9367e139b4ee0479adee6abe646328, type: 3}
+        m_Texture: {fileID: 2800000, guid: 38db1f73649fd2149b5d05f4ed7b0065, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainNormal:
-        m_Texture: {fileID: 2800000, guid: 0b74b06f46951de4195791b7af459fbc, type: 3}
+        m_Texture: {fileID: 2800000, guid: 85cb846f078a3d647bead11f8403d8da, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -97,6 +109,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _RoadMaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -124,6 +140,7 @@ Material:
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
+    - _CobbleSmoothness: 0.2
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
@@ -134,8 +151,8 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GridMaxX: 47.5
-    - _GridMaxZ: 47.5
+    - _GridMaxX: 122.5
+    - _GridMaxZ: 122.5
     - _GridMinX: -2.5
     - _GridMinZ: -2.5
     - _MainSmoothness: 0.2

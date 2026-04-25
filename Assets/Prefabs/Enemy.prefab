@@ -169,6 +169,12 @@ MonoBehaviour:
   weaponRange: 5
   detectionDistance: 100
   viewAngle: 120
+  viewOffsets:
+  - {x: 0, y: 0.4, z: 0}
+  - {x: -0.4, y: 0, z: 0}
+  - {x: 0.4, y: 0, z: 0}
+  - {x: 0, y: 0, z: -0.4}
+  - {x: 0, y: 0, z: 0.4}
   hearingRange: 20
   gunshotHearingRange: 50
   isDead: 0
@@ -439,6 +445,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5193286491301768995, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
       propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7419700781158938212, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8165440298323652197, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
