@@ -12,6 +12,16 @@ public class UIToolkitScreenFade : MonoBehaviour
     {
         var root = GetComponent<UIDocument>().rootVisualElement;
         fadeScreen = root.Q<VisualElement>("fade-screen");
+
+        // Start fully black to hide the scene while it loads
+        fadeScreen.style.opacity = 1f;
+        StartFadeIn();
+    }
+
+    // Add this helper to trigger the fade from other scripts easily
+    public void StartFadeIn()
+    {
+        StartCoroutine(FadeIn());
     }
 
     public IEnumerator FadeOut()
