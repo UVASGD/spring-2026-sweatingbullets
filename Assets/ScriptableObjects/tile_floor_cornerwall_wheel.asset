@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd400bdcc32944e4daf99f32fa1e078c, type: 3}
   m_Name: tile_floor_cornerwall_wheel
   m_EditorClassIdentifier: Assembly-CSharp::TileDefinition
-  prefab: {fileID: 5589780480879628985, guid: d89c096280c408d40a0683abed09a035, type: 3}
+  prefab: {fileID: 1196176118937014567, guid: a102337b59ad3d44c8c063e6c7ae45fe, type: 3}
   spawnWeight: 10
-  posZ: 0
+  posZ: 1
   posX: 0
-  negZ: 1
+  negZ: 0
   negX: 1
   category: 1

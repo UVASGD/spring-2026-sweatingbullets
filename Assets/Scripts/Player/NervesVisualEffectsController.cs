@@ -45,13 +45,19 @@ namespace Player
         private ColorAdjustments _colorAdjustments;
         private ChromaticAberration _chromaticAberration;
         private LensDistortion _lensDistortion;
+        [SerializeField]
         private float _currentNervesLevel = 0f;
         private float _visualNervesLevel = 0f;
         private Coroutine _demoCoroutine;
         private Vector3 _originalCameraPosition;
         private Vector3 _originalGunPosition;
-        private Vector3 _gunShakeOffset;
         private float _shakeTime = 0f;
+        private bool _freezeCameraWrites = false;
+
+        // Called by DeathCameraFollow.FreezeCamera() so the death camera's orbit isn't clobbered
+        // by this script's per-frame localPosition assignment to the same transform.
+        public void FreezeCameraWrites() => _freezeCameraWrites = true;
+        public void UnfreezeCameraWrites() => _freezeCameraWrites = false;
 
         private void Start()
         {
@@ -119,6 +125,14 @@ namespace Player
             HandleDebugInput();
             // Only smooth transitions when not in demo mode (demo controls _visualNervesLevel directly)
             if (!isDemoActive) SmoothVisuals();
+        }
+
+        // Shake runs in LateUpdate so it's applied AFTER every other Update — in particular
+        // after WeaponController's walk-sway, which assigns the gun's localPosition each frame.
+        // Running shake in Update would let walk-sway clobber it (or vice versa, depending on
+        // script execution order).
+        private void LateUpdate()
+        {
             ApplyCameraShake();
         }
 
@@ -206,8 +220,9 @@ namespace Player
                 _shakeTime = 0f;
             }
 
-            // 1. Camera Shake
-            if (cameraTransform != null)
+            // 1. Camera Shake — skipped while frozen (e.g., during death camera orbit) so we don't
+            // overwrite a transform that another system is now driving.
+            if (cameraTransform != null && !_freezeCameraWrites)
             {
                 float camShakeIntensity = intensityMultiplier * maxCameraShakeIntensity;
 
@@ -226,31 +241,24 @@ namespace Player
                 }
             }
 
-            // 2. Gun Shake (applied as additive offset so it doesn't override WeaponController ADS movement)
+            // 2. Gun Shake — pure additive on top of whatever WeaponController.Update wrote this frame.
+            // We run in LateUpdate, so the gun's localPosition has already been set to (base + walkSway)
+            // by WeaponController. We just add the shake on top; next frame WeaponController resets and
+            // we add fresh shake again. No subtract-previous bookkeeping needed.
             if (gunModelTransform != null)
             {
                 float gunShakeIntensity = intensityMultiplier * maxGunShakeIntensity;
 
-                // Remove previous shake offset
-                gunModelTransform.localPosition -= _gunShakeOffset;
-
                 if (gunShakeIntensity > 0.001f)
                 {
                     // Use slightly offset Perlin noise so gun doesn't move exactly with camera
-                    float offset = 100f; 
+                    float offset = 100f;
                     float shakeX = (Mathf.PerlinNoise(_shakeTime + offset, 0f) - 0.5f) * 2f * gunShakeIntensity;
                     float shakeY = (Mathf.PerlinNoise(0f, _shakeTime + offset) - 0.5f) * 2f * gunShakeIntensity;
                     float shakeZ = (Mathf.PerlinNoise(_shakeTime + offset, _shakeTime + offset) - 0.5f) * 2f * gunShakeIntensity * 0.5f;
 
-                    _gunShakeOffset = new Vector3(shakeX, shakeY, shakeZ);
+                    gunModelTransform.localPosition += new Vector3(shakeX, shakeY, shakeZ);
                 }
-                else
-                {
-                    _gunShakeOffset = Vector3.zero;
-                }
-
-                // Apply new shake offset on top of current position
-                gunModelTransform.localPosition += _gunShakeOffset;
             }
         }
 

@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
 using UnityHFSM;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Enemy
 {
@@ -30,6 +32,7 @@ namespace Enemy
         [Header("Detection")]
         [SerializeField] private float detectionDistance = 100f;
         [SerializeField, Range(0, 360)] private float viewAngle = 120f;
+        [SerializeField] private List<Vector3> viewOffsets;
 
         [Header("Hearing")]
         [SerializeField] private float hearingRange = 20f;
@@ -56,8 +59,9 @@ namespace Enemy
             _agent = GetComponent<NavMeshAgent>();
 
             // Add states
+            _stateMachine.AddState(EnemyState.Patrol, new PatrolState(false, this, 10, 2, 2,100000));
+            _stateMachine.AddState(EnemyState.Alert, new PatrolState(false, this, 10, 3.0f, 0.5f, 5));
             _investigateState = new InvestigateState(false, this);
-            _stateMachine.AddState(EnemyState.Patrol, new PatrolState(false, this));
             _stateMachine.AddState(EnemyState.Follow, new FollowState(false, this, player.transform));
             _stateMachine.AddState(EnemyState.Shoot, new ShootState(true, this, aimTime, weaponRange));
             _stateMachine.AddState(EnemyState.FollowUpToShoot, new FollowUpToShootState(true, this, player.transform, strafeDistance,5.0f));
@@ -176,10 +180,12 @@ namespace Enemy
             Die();
         }
 
+        // Exploding barrels disabled — ExplosionHit commented out.
+        /*
         public void ExplosionHit(Vector3 hitDirection)
         {
             // Apply physics hit
-            _rb.isKinematic = false; 
+            _rb.isKinematic = false;
             _rb.useGravity = true;
             _rb.constraints = RigidbodyConstraints.None;
             _rb.AddForce(hitDirection * 15f, ForceMode.Impulse);
@@ -190,6 +196,7 @@ namespace Enemy
             _stateMachine.Trigger(StateEvent.Died);
             Die();
         }
+        */
 
         private void Die(){
             isDead = true;
@@ -197,6 +204,19 @@ namespace Enemy
             _agent.enabled = false;
             weapon.SetActive(false);
             // Additional death logic (e.g., play animation, drop loot) could go here
+        }
+
+
+        private bool CheckDir(Vector3 position, Vector3 dir, float distance)
+        {
+            if (Physics.Raycast(position, dir.normalized, out RaycastHit hit, distance))
+            {
+                Debug.DrawLine(position, hit.point, Color.green);
+                //print(hit.collider.gameObject.name);
+                return (hit.collider.gameObject == player);
+            }
+            Debug.DrawLine(position, dir.normalized * distance, Color.green);
+            return false;
         }
 
         private bool CanSeePlayer()
@@ -219,16 +239,27 @@ namespace Enemy
                 return false;
             }
 
-            if (Physics.Raycast(eyes.transform.position, direction.normalized, out RaycastHit hit, distance))
+        
+            
+            if (CheckDir(eyes.transform.position, direction, distance))
             {
-                //print(hit.collider.gameObject.name);
-                if (hit.collider.gameObject != player)
-                {
-                    return false;
-                }
+                return true;
             }
 
-            return true;
+            direction.y = 0;
+            if (CheckDir(eyes.transform.position, direction, distance))
+            {
+                return true;
+            }
+
+            foreach (Vector3 offset in viewOffsets)
+            {
+                if (CheckDir(eyes.transform.position + offset, direction, distance))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private bool CanHearPlayer()

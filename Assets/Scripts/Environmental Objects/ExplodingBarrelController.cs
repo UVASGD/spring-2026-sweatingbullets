@@ -1,3 +1,5 @@
+// Exploding barrels disabled — entire controller commented out.
+/*
 using UnityEngine;
 using Enemy;
 using Unity;
@@ -9,7 +11,7 @@ public class ExplodingBarrelController : MonoBehaviour, IEnvironmentalObject
     public float explosionRadius = 5f;
 
     public bool drawGizmos = true;
-    [SerializeField] private float playerHeightOffset = 1.0f; 
+    [SerializeField] private float playerHeightOffset = 1.0f;
     void Explode()
     {
         Instantiate(explodeFXPrefab, transform.position, transform.rotation);
@@ -55,3 +57,4 @@ public class ExplodingBarrelController : MonoBehaviour, IEnvironmentalObject
         }
     }
 }
+*/

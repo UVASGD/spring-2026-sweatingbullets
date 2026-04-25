@@ -24,6 +24,11 @@ public class DeathCameraFollow : MonoBehaviour
 
         freezeCamera = true;
         orbitCenter = player.position + Vector3.up * 1f;
+
+        // Tell the nerves controller to stop writing localPosition to the camera transform —
+        // otherwise its LateUpdate clobbers the orbit RotateAround we apply here.
+        var nerves = FindFirstObjectByType<Player.NervesVisualEffectsController>();
+        if (nerves != null) nerves.FreezeCameraWrites();
     }
 
     void LateUpdate()

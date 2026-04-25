@@ -77,6 +77,9 @@ namespace Tiles
         [SerializeField] private float pickupGroundProbeDistance = 20f;
         [SerializeField] private float pickupGroundClearance = 0.02f;
 
+        [Header("Boundaries")]
+        public GameObject fencePrefab;
+
         // ---- Tile references ----
         [Header("Tile References")]
         public TileDefinition pathTileDefinition;
@@ -129,12 +132,15 @@ namespace Tiles
         public NavMeshSurface navMeshSurface;
         public GameObject enemy;
         public List<Transform> spawnPoints;
+        public int enemiesToSpawn;
 
         // ---- Internal state ----
         private readonly HashSet<Vector2Int> mainRoadCells = new HashSet<Vector2Int>();
         private readonly HashSet<Vector2Int> alleyCells = new HashSet<Vector2Int>();
         private readonly HashSet<Vector2Int> buildingCells = new HashSet<Vector2Int>();
         private readonly HashSet<Vector2Int> reservedMapFeatureCells = new HashSet<Vector2Int>();
+        private readonly Dictionary<Vector2Int, GameObject> prePlacedFloors =
+            new Dictionary<Vector2Int, GameObject>();
 
         static readonly Vector2Int[] Cardinals =
             { Vector2Int.up, Vector2Int.right, Vector2Int.down, Vector2Int.left };
@@ -147,13 +153,18 @@ namespace Tiles
         IEnumerator RunWFC()
         {
             InitializeSets();
+            IndexPrePlacedFloors();
             PlaceMainRoads();
             PlaceBuildings();
             PlaceAlleys();
             PlaceFillers();
             InstantiateMapFeatures();
             SpawnOutsideTiles();
+            GenerateRoadMask();
+            UploadPoissonKernel(16, 0.015f);
             UpdateSandBlendBounds();
+
+            SpawnBoundaryFences();
 
             yield return null;
 
@@ -163,12 +174,211 @@ namespace Tiles
             GameObject player = GameObject.FindWithTag("Player");
             player.transform.position = spawnTile.transform.position + Vector3.up * 3;
             SpawnStartingPickups(spawnTile.transform.position);
-            
-            foreach (var t in spawnPoints)
+
+            Vector2Int playerGrid = WorldToGrid(spawnTile.transform.position);
+
+            for (int i = 0; i < enemiesToSpawn; i++)
             {
-                GameObject clone = Instantiate(enemy, t.position, t.rotation);
-                clone.GetComponent<EnemyAI>().Init(GameObject.FindWithTag("Player"));
+                Vector2Int spawnGrid = GetEnemySpawnLocation(playerGrid);
+
+                Vector3 worldPos = GridToWorld(spawnGrid);
+                GameObject clone = Instantiate(enemy, worldPos, Quaternion.identity);
+                clone.GetComponent<EnemyAI>().Init(player);
             }
+        }
+        void UploadPoissonKernel(int count, float radius)
+        {
+            Vector4[] offsets = new Vector4[count];
+            List<Vector2> points = new List<Vector2>();
+            int attempts = 0;
+            int maxAttempts = count * 100; // hard bailout
+
+            while (points.Count < count && attempts < maxAttempts)
+            {
+                attempts++;
+                Vector2 candidate = new Vector2(Random.Range(-radius, radius), Random.Range(-radius, radius));
+                bool valid = true;
+                foreach (var p in points)
+                {
+                    if (Vector2.Distance(candidate, p) < radius / Mathf.Sqrt(count))
+                    { valid = false; break; }
+                }
+                if (valid) points.Add(candidate);
+            }
+
+            if (points.Count < count)
+                Debug.LogWarning($"PoissonKernel: only placed {points.Count}/{count} points — reduce count or increase radius");
+
+            for (int i = 0; i < points.Count; i++)
+                offsets[i] = new Vector4(points[i].x, points[i].y, 0, 0);
+
+            sandBlendMaterial.SetVectorArray("_PoissonOffsets", offsets);
+            sandBlendMaterial.SetInt("_PoissonCount", points.Count); // use actual count, not requested
+        }
+
+        void BlurMask(Color[] pixels, int resX, int resY, int radius)
+        {
+            float[] values = new float[pixels.Length];
+            for (int i = 0; i < pixels.Length; i++)
+                values[i] = pixels[i].r;
+
+            float[] temp = new float[values.Length];
+
+            // Horizontal pass
+            for (int y = 0; y < resY; y++)
+            {
+                for (int x = 0; x < resX; x++)
+                {
+                    float sum = 0; int count = 0;
+                    for (int k = -radius; k <= radius; k++)
+                    {
+                        int nx = Mathf.Clamp(x + k, 0, resX - 1);
+                        sum += values[y * resX + nx];
+                        count++;
+                    }
+                    temp[y * resX + x] = sum / count;
+                }
+            }
+
+            // Vertical pass
+            for (int y = 0; y < resY; y++)
+            {
+                for (int x = 0; x < resX; x++)
+                {
+                    float sum = 0; int count = 0;
+                    for (int k = -radius; k <= radius; k++)
+                    {
+                        int ny = Mathf.Clamp(y + k, 0, resY - 1);
+                        sum += temp[ny * resX + x];
+                        count++;
+                    }
+                    values[y * resX + x] = sum / count;
+                }
+            }
+
+            for (int i = 0; i < pixels.Length; i++)
+                pixels[i] = new Color(values[i], 0, 0);
+        }
+
+        void GenerateRoadMask()
+        {
+            if (sandBlendMaterial == null) return;
+
+            int resX = gridSizeX;
+            int resY = gridSizeY;
+
+            Texture2D mask = new Texture2D(resX, resY, TextureFormat.R8, false);
+            mask.filterMode = FilterMode.Point;
+            mask.wrapMode = TextureWrapMode.Clamp;
+
+            Color[] pixels = new Color[resX * resY];
+            for (int i = 0; i < pixels.Length; i++)
+                pixels[i] = Color.white;
+
+            foreach (var cell in mainRoadCells)
+            {
+                if (cell.x < 0 || cell.x >= resX || cell.y < 0 || cell.y >= resY) continue;
+
+                // Skip some cells randomly for scatter
+                if (Random.value > 0.85f) continue;
+
+                // Fractional value: lower = more cobble, higher = more sand bleed-through
+                float opacity = Random.Range(0.05f, 0.25f);
+                pixels[cell.y * resX + cell.x] = new Color(opacity, 0, 0);
+            }
+
+            BlurMask(pixels, resX, resY, 1);
+            mask.SetPixels(pixels);
+            mask.Apply();
+
+            sandBlendMaterial.SetTexture("_RoadMaskTex", mask);
+        }
+        void SpawnBoundaryFences()
+            {
+                if (fencePrefab == null) return;
+
+                float half = tileSize * 0.5f;
+
+                // --- TOP & BOTTOM EDGES (horizontal fences) ---
+                for (int x = 0; x < gridSizeX; x++)
+                {
+                    float worldX = x * tileSize;
+
+                    // Bottom edge (y = -0.5 tile)
+                    Vector3 bottomPos = new Vector3(worldX, 0, -half);
+                    Instantiate(fencePrefab, bottomPos, Quaternion.identity, transform);
+
+                    // Top edge (y = gridSizeY - 0.5 tile)
+                    Vector3 topPos = new Vector3(worldX, 0, (gridSizeY - 1) * tileSize + half);
+                    Instantiate(fencePrefab, topPos, Quaternion.identity, transform);
+                }
+
+                // --- LEFT & RIGHT EDGES (vertical fences) ---
+                for (int y = 0; y < gridSizeY; y++)
+                {
+                    float worldZ = y * tileSize;
+
+                    // Left edge (x = -0.5 tile)
+                    Vector3 leftPos = new Vector3(-half, 0, worldZ);
+                    Instantiate(fencePrefab, leftPos, Quaternion.Euler(0, 90, 0), transform);
+
+                    // Right edge (x = gridSizeX - 0.5 tile)
+                    Vector3 rightPos = new Vector3((gridSizeX - 1) * tileSize + half, 0, worldZ);
+                    Instantiate(fencePrefab, rightPos, Quaternion.Euler(0, 90, 0), transform);
+                }
+            }
+
+        Vector2Int GetOppositeEdgeDirection(Vector2Int playerPos)
+        {
+            int distLeft = playerPos.x;
+            int distRight = gridSizeX - 1 - playerPos.x;
+            int distBottom = playerPos.y;
+            int distTop = gridSizeY - 1 - playerPos.y;
+
+            int min = Mathf.Min(distLeft, distRight, distBottom, distTop);
+
+            if (min == distLeft) return Vector2Int.right;
+            if (min == distRight) return Vector2Int.left;
+            if (min == distBottom) return Vector2Int.up;
+            return Vector2Int.down;
+        }
+
+        Vector2Int GetEnemySpawnLocation(Vector2Int playerPos)
+        {
+            // Combine all valid walkable tiles
+            List<Vector2Int> candidates = new List<Vector2Int>();
+            candidates.AddRange(mainRoadCells);
+            candidates.AddRange(alleyCells);
+
+            if (candidates.Count == 0)
+                return playerPos; // fallback safety
+
+            // Determine preferred direction (opposite side of map)
+            Vector2Int preferredDir = GetOppositeEdgeDirection(playerPos);
+
+            Vector2Int bestCandidate = candidates[0];
+            float bestScore = float.MinValue;
+
+            foreach (var c in candidates)
+            {
+                // Manhattan distance
+                float dist = Mathf.Abs(c.x - playerPos.x) + Mathf.Abs(c.y - playerPos.y);
+
+                // Direction bias (dot product)
+                Vector2Int dir = c - playerPos;
+                float directionalScore = Vector2.Dot(dir, preferredDir);
+
+                // Final score (tweak weights if needed)
+                float score = dist * 1.0f + directionalScore * 2.0f;
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestCandidate = c;
+                }
+            }
+
+            return bestCandidate;
         }
 
         void InitializeSets()
@@ -500,6 +710,7 @@ namespace Tiles
                     int dy = p.y - originY;
                     PlaceBuildingCell(p, dx, dy, w, h);
                     buildingCells.Add(p);
+                    RemovePrePlacedFloorAt(p);
                     if (floorTilePrefab != null)
                     {
                         Vector3 fp = GridToWorld(p);
@@ -744,6 +955,7 @@ namespace Tiles
                     Vector3 worldPos = GridToWorld(p);
                     Quaternion quat = Quaternion.Euler(0, rot * 90, 0) * chosen.prefab.transform.rotation;
                     Instantiate(chosen.prefab, worldPos, quat, transform);
+                    RemovePrePlacedFloorAt(p);
                     if (floorTilePrefab != null)
                         Instantiate(floorTilePrefab, worldPos + Vector3.up * 0.01f,
                             floorTilePrefab.transform.rotation, transform);
@@ -762,6 +974,7 @@ namespace Tiles
                 Vector3 worldPos = GridToWorld(f.position);
                 Quaternion quat = Quaternion.Euler(0, f.rotation * 90, 0) * f.tile.prefab.transform.rotation;
                 Instantiate(f.tile.prefab, worldPos, quat, transform);
+                RemovePrePlacedFloorAt(f.position);
                 if (floorTilePrefab != null)
                     Instantiate(floorTilePrefab, worldPos + Vector3.up * 0.01f,
                         floorTilePrefab.transform.rotation, transform);
@@ -1112,12 +1325,47 @@ namespace Tiles
         // =====================================================================
         // Helpers
         // =====================================================================
+        // Scan the scene once before generation begins for any GameObject that looks like an
+        // instance of `floorTilePrefab` (clone of the same prefab, by name) and index it by
+        // grid cell. WFC placement sites later call RemovePrePlacedFloorAt(cell) so the
+        // pre-existing floor doesn't double up with the floor we're about to spawn.
+        void IndexPrePlacedFloors()
+        {
+            prePlacedFloors.Clear();
+            if (floorTilePrefab == null) return;
+            string prefabName = floorTilePrefab.name;
+            string clonePrefix = prefabName + "(";
+            GameObject[] all = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+            foreach (var go in all)
+            {
+                if (go == null) continue;
+                string n = go.name;
+                if (n != prefabName && !n.StartsWith(clonePrefix)) continue;
+                Vector3 wp = go.transform.position;
+                int gx = Mathf.RoundToInt(wp.x / tileSize);
+                int gy = Mathf.RoundToInt(wp.z / tileSize);
+                Vector2Int cell = new Vector2Int(gx, gy);
+                if (!prePlacedFloors.ContainsKey(cell))
+                    prePlacedFloors[cell] = go;
+            }
+        }
+
+        void RemovePrePlacedFloorAt(Vector2Int cell)
+        {
+            if (prePlacedFloors.TryGetValue(cell, out var go))
+            {
+                if (go != null) Destroy(go);
+                prePlacedFloors.Remove(cell);
+            }
+        }
+
         void PlacePathTileAt(Vector2Int pos)
         {
             if (pathTileDefinition == null || pathTileDefinition.prefab == null) return;
             Vector3 worldPos = GridToWorld(pos);
             Instantiate(pathTileDefinition.prefab, worldPos,
                 pathTileDefinition.prefab.transform.rotation, transform);
+            RemovePrePlacedFloorAt(pos);
             if (floorTilePrefab != null)
                 Instantiate(floorTilePrefab, worldPos + Vector3.up * 0.01f,
                     floorTilePrefab.transform.rotation, transform);

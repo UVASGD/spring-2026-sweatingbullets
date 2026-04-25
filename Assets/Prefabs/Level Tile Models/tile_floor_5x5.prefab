@@ -69,6 +69,14 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
       propertyPath: m_Materials.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -87,6 +95,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
       propertyPath: m_TagString
       value: Ground
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 767e8d819b2a66a4cbebe8eacc6e3e2a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -121,10 +133,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Tile
   gridPosition: {x: 0, y: 0}
   definition: {fileID: 11400000, guid: 02fb13fe9dd2300418e80b24808d4149, type: 2}
-  north: {fileID: 0}
-  east: {fileID: 0}
-  south: {fileID: 0}
-  west: {fileID: 0}
+  posZ: {fileID: 0}
+  posX: {fileID: 0}
+  negZ: {fileID: 0}
+  negX: {fileID: 0}
 --- !u!114 &-8405887990219816684
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -137,9 +149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de2a64774eaa1404382651d6f92e8bf5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpawnProps
-  propInfos:
-  - spawnChance: 0.25
-    propPrefab: {fileID: 8755620045545428116, guid: 5ed7c74cb2c1c7043a2039627d837010, type: 3}
+  propInfos: []
 --- !u!65 &1020875975791890748
 BoxCollider:
   m_ObjectHideFlags: 0
