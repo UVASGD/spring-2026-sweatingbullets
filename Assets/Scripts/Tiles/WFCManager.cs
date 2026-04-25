@@ -50,6 +50,9 @@ namespace Tiles
         // ---- To spawn the player in the spawn location ----
         public GameObject playerPrefab;
 
+        [Header("Boundaries")]
+        public GameObject fencePrefab;
+
         // ---- Tile references ----
         [Header("Tile References")]
         public TileDefinition pathTileDefinition;
@@ -127,7 +130,11 @@ namespace Tiles
             PlaceFillers();
             InstantiateMapFeatures();
             SpawnOutsideTiles();
+            GenerateRoadMask();
+            UploadPoissonKernel(16, 0.015f);
             UpdateSandBlendBounds();
+
+            SpawnBoundaryFences();
 
             yield return null;
 
@@ -147,6 +154,147 @@ namespace Tiles
                 clone.GetComponent<EnemyAI>().Init(player);
             }
         }
+        void UploadPoissonKernel(int count, float radius)
+        {
+            Vector4[] offsets = new Vector4[count];
+            List<Vector2> points = new List<Vector2>();
+            int attempts = 0;
+            int maxAttempts = count * 100; // hard bailout
+
+            while (points.Count < count && attempts < maxAttempts)
+            {
+                attempts++;
+                Vector2 candidate = new Vector2(Random.Range(-radius, radius), Random.Range(-radius, radius));
+                bool valid = true;
+                foreach (var p in points)
+                {
+                    if (Vector2.Distance(candidate, p) < radius / Mathf.Sqrt(count))
+                    { valid = false; break; }
+                }
+                if (valid) points.Add(candidate);
+            }
+
+            if (points.Count < count)
+                Debug.LogWarning($"PoissonKernel: only placed {points.Count}/{count} points — reduce count or increase radius");
+
+            for (int i = 0; i < points.Count; i++)
+                offsets[i] = new Vector4(points[i].x, points[i].y, 0, 0);
+
+            sandBlendMaterial.SetVectorArray("_PoissonOffsets", offsets);
+            sandBlendMaterial.SetInt("_PoissonCount", points.Count); // use actual count, not requested
+        }
+
+        void BlurMask(Color[] pixels, int resX, int resY, int radius)
+        {
+            float[] values = new float[pixels.Length];
+            for (int i = 0; i < pixels.Length; i++)
+                values[i] = pixels[i].r;
+
+            float[] temp = new float[values.Length];
+
+            // Horizontal pass
+            for (int y = 0; y < resY; y++)
+            {
+                for (int x = 0; x < resX; x++)
+                {
+                    float sum = 0; int count = 0;
+                    for (int k = -radius; k <= radius; k++)
+                    {
+                        int nx = Mathf.Clamp(x + k, 0, resX - 1);
+                        sum += values[y * resX + nx];
+                        count++;
+                    }
+                    temp[y * resX + x] = sum / count;
+                }
+            }
+
+            // Vertical pass
+            for (int y = 0; y < resY; y++)
+            {
+                for (int x = 0; x < resX; x++)
+                {
+                    float sum = 0; int count = 0;
+                    for (int k = -radius; k <= radius; k++)
+                    {
+                        int ny = Mathf.Clamp(y + k, 0, resY - 1);
+                        sum += temp[ny * resX + x];
+                        count++;
+                    }
+                    values[y * resX + x] = sum / count;
+                }
+            }
+
+            for (int i = 0; i < pixels.Length; i++)
+                pixels[i] = new Color(values[i], 0, 0);
+        }
+
+        void GenerateRoadMask()
+        {
+            if (sandBlendMaterial == null) return;
+
+            int resX = gridSizeX;
+            int resY = gridSizeY;
+
+            Texture2D mask = new Texture2D(resX, resY, TextureFormat.R8, false);
+            mask.filterMode = FilterMode.Point;
+            mask.wrapMode = TextureWrapMode.Clamp;
+
+            Color[] pixels = new Color[resX * resY];
+            for (int i = 0; i < pixels.Length; i++)
+                pixels[i] = Color.white;
+
+            foreach (var cell in mainRoadCells)
+            {
+                if (cell.x < 0 || cell.x >= resX || cell.y < 0 || cell.y >= resY) continue;
+
+                // Skip some cells randomly for scatter
+                if (Random.value > 0.85f) continue;
+
+                // Fractional value: lower = more cobble, higher = more sand bleed-through
+                float opacity = Random.Range(0.05f, 0.25f);
+                pixels[cell.y * resX + cell.x] = new Color(opacity, 0, 0);
+            }
+
+            BlurMask(pixels, resX, resY, 1);
+            mask.SetPixels(pixels);
+            mask.Apply();
+
+            sandBlendMaterial.SetTexture("_RoadMaskTex", mask);
+        }
+        void SpawnBoundaryFences()
+            {
+                if (fencePrefab == null) return;
+
+                float half = tileSize * 0.5f;
+
+                // --- TOP & BOTTOM EDGES (horizontal fences) ---
+                for (int x = 0; x < gridSizeX; x++)
+                {
+                    float worldX = x * tileSize;
+
+                    // Bottom edge (y = -0.5 tile)
+                    Vector3 bottomPos = new Vector3(worldX, 0, -half);
+                    Instantiate(fencePrefab, bottomPos, Quaternion.identity, transform);
+
+                    // Top edge (y = gridSizeY - 0.5 tile)
+                    Vector3 topPos = new Vector3(worldX, 0, (gridSizeY - 1) * tileSize + half);
+                    Instantiate(fencePrefab, topPos, Quaternion.identity, transform);
+                }
+
+                // --- LEFT & RIGHT EDGES (vertical fences) ---
+                for (int y = 0; y < gridSizeY; y++)
+                {
+                    float worldZ = y * tileSize;
+
+                    // Left edge (x = -0.5 tile)
+                    Vector3 leftPos = new Vector3(-half, 0, worldZ);
+                    Instantiate(fencePrefab, leftPos, Quaternion.Euler(0, 90, 0), transform);
+
+                    // Right edge (x = gridSizeX - 0.5 tile)
+                    Vector3 rightPos = new Vector3((gridSizeX - 1) * tileSize + half, 0, worldZ);
+                    Instantiate(fencePrefab, rightPos, Quaternion.Euler(0, 90, 0), transform);
+                }
+            }
 
         Vector2Int WorldToGrid(Vector3 worldPos)
         {

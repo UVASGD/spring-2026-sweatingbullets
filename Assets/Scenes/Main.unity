@@ -787,6 +787,7 @@ MonoBehaviour:
     tile: {fileID: 11400000, guid: fa77717a668013540a2a1636972a970b, type: 2}
     rotation: 0
   playerPrefab: {fileID: 8739283196448006463, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+  fencePrefab: {fileID: 3564778555597562438, guid: c94fda9ecc6860c4190c40bbd8ba38e6, type: 3}
   pathTileDefinition: {fileID: 11400000, guid: 02fb13fe9dd2300418e80b24808d4149, type: 2}
   spawnTileDefinition: {fileID: 11400000, guid: fa77717a668013540a2a1636972a970b, type: 2}
   edgeWallDefinitions:
@@ -1235,6 +1236,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: fireSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 2b8473949a6be47aab05858139101914, type: 3}
     - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
       propertyPath: fireAction
       value: 

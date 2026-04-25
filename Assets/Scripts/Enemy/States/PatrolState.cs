@@ -7,11 +7,27 @@ namespace Enemy.States
 {
     public class PatrolState : EnemyStateBase
     {
-        private float _patrolRadius = 15f;
+        public PatrolState(
+            bool needsExitTime,
+            EnemyAI Enemy, 
+            float patrolRadius, 
+            float moveSpeed, 
+            float waitTime,
+            float timeLeft) : base(needsExitTime, Enemy)
+        {
+            _patrolRadius = patrolRadius;
+            _moveSpeed = moveSpeed;
+            _waitTime = waitTime;
+            _timeLeft = timeLeft;
+        }
+
+        public bool IsDone {get; private set;}
+        private Vector3 _targetPosition;
+        private float _patrolRadius = 10f;
         private float _moveSpeed = 2f;
         private float _waitTimer;
         private float _waitTime = 2f;
-
+        private float _timeLeft = 10000f;
         private readonly List<Vector3> _visitedPositions = new List<Vector3>();
         private float _avoidRadius = 8f;
         private int _maxHistory = 8;
@@ -36,6 +52,7 @@ namespace Enemy.States
 
             if (Agent == null || !Agent.isActiveAndEnabled) return;
 
+            _timeLeft -= Time.deltaTime;
             if (!Agent.pathPending && Agent.remainingDistance <= Agent.stoppingDistance)
             {
                 _waitTimer += Time.deltaTime;
