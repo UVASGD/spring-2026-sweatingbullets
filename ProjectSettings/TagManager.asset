@@ -6,6 +6,7 @@ TagManager:
   tags:
   - GunViewModel
   - Ground
+  - Spawn
   layers:
   - Default
   - TransparentFX
@@ -17,7 +18,6 @@ TagManager:
   - Actual_Gun
   - EnemyNearMiss
   - Ground
-  - 
   - 
   - 
   - 

@@ -134,8 +134,8 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GridMaxX: 47.5
-    - _GridMaxZ: 47.5
+    - _GridMaxX: 122.5
+    - _GridMaxZ: 122.5
     - _GridMinX: -2.5
     - _GridMinZ: -2.5
     - _MainSmoothness: 0.2
