@@ -795,11 +795,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c01c67502de99ee47aa4e332956e9d75, type: 2}
   - {fileID: 11400000, guid: c268c9884752dc342b6d52832bed6c65, type: 2}
   cornerWallDefinitions:
-  - {fileID: 11400000, guid: 24a62d9ede203ae46b0fc369cb09335c, type: 2}
   - {fileID: 11400000, guid: 8f5465d747267cc47ba6e49aded1ddcc, type: 2}
   fillerTileDefinitions:
   - {fileID: 11400000, guid: b4b7c455a23b7e247a4a67d4c3a6f4d7, type: 2}
   - {fileID: 11400000, guid: 02fb13fe9dd2300418e80b24808d4149, type: 2}
+  - {fileID: 11400000, guid: 79b88d01d84d6b645b3e722b3738bcc7, type: 2}
   mainRoadCount: 6
   mainRoadOriginSpacing: 5
   mainRoadSegmentLengthMin: 10
@@ -920,6 +920,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &860884440 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8836598305803269848, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+  m_PrefabInstance: {fileID: 1701916233}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &954381311
 GameObject:
   m_ObjectHideFlags: 0
@@ -1237,13 +1242,13 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
-      propertyPath: fireSound
-      value: 
-      objectReference: {fileID: 8300000, guid: 2b8473949a6be47aab05858139101914, type: 3}
-    - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
       propertyPath: fireAction
       value: 
       objectReference: {fileID: 810048756}
+    - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: dryFireSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 990f981c12cfbef41b1541282b2388ba, type: 3}
     - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
       propertyPath: swayAmplitude
       value: 0.15
@@ -1268,6 +1273,10 @@ PrefabInstance:
       propertyPath: aimDownSightsAction
       value: 
       objectReference: {fileID: 1363498393}
+    - target: {fileID: 4624279454764447223, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: delayBeforeIncrease
+      value: 0.25
+      objectReference: {fileID: 0}
     - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
       propertyPath: m_LocalPosition.x
       value: 63.59
@@ -1320,6 +1329,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 8883489445756839933, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: gunModelTransform
+      value: 
+      objectReference: {fileID: 860884440}
+    - target: {fileID: 8883489445756839933, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: postProcessVolume
+      value: 
+      objectReference: {fileID: 832575518}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

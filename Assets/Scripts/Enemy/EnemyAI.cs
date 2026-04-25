@@ -180,10 +180,12 @@ namespace Enemy
             Die();
         }
 
+        // Exploding barrels disabled — ExplosionHit commented out.
+        /*
         public void ExplosionHit(Vector3 hitDirection)
         {
             // Apply physics hit
-            _rb.isKinematic = false; 
+            _rb.isKinematic = false;
             _rb.useGravity = true;
             _rb.constraints = RigidbodyConstraints.None;
             _rb.AddForce(hitDirection * 15f, ForceMode.Impulse);
@@ -194,6 +196,7 @@ namespace Enemy
             _stateMachine.Trigger(StateEvent.Died);
             Die();
         }
+        */
 
         private void Die(){
             isDead = true;

@@ -26,6 +26,9 @@ Shader "Custom/SandBlend"
         _GridMaxX ("Grid Max X", Float) = 50
         _GridMaxZ ("Grid Max Z", Float) = 50
         _BlendWidth ("Blend Width (world units)", Float) = 5
+
+        _ShadowStrength ("Shadow Strength", Range(0,1)) = 1.0
+        _ShadowTint ("Shadow Tint", Color) = (0,0,0,1)
     }
     SubShader
     {
@@ -88,6 +91,8 @@ Shader "Custom/SandBlend"
                 float _GridMaxX;
                 float _GridMaxZ;
                 float _BlendWidth;
+                float _ShadowStrength;
+                float4 _ShadowTint;
             CBUFFER_END
             
             int _PoissonCount;
@@ -181,7 +186,23 @@ Shader "Custom/SandBlend"
                 surfaceData.occlusion = ao;
                 surfaceData.alpha = 1;
 
-                return UniversalFragmentPBR(inputData, surfaceData);
+                half4 finalColor = UniversalFragmentPBR(inputData, surfaceData);
+
+                // Per-material shadow strength override.
+                // Compute the raw realtime shadow (1 = lit, 0 = fully shadowed) and
+                // mix back the missing main-light diffuse contribution proportional
+                // to (1 - _ShadowStrength). _ShadowTint lets you push the in-shadow
+                // color (e.g. cool/blue) without changing the lit areas.
+                Light mainLight = GetMainLight();
+                half rawShadow = MainLightRealtimeShadow(inputData.shadowCoord);
+                half shadowMask = 1.0 - rawShadow; // 0 outside shadow, 1 inside
+                half NdotL = saturate(dot(normalWS, mainLight.direction));
+                half3 unshadowedDiffuse = albedo * mainLight.color * NdotL * ao;
+
+                finalColor.rgb += unshadowedDiffuse * shadowMask * (1.0 - _ShadowStrength);
+                finalColor.rgb = lerp(finalColor.rgb, finalColor.rgb * _ShadowTint.rgb, shadowMask * _ShadowTint.a * _ShadowStrength);
+
+                return finalColor;
             }
             ENDHLSL
         }

@@ -149,9 +149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de2a64774eaa1404382651d6f92e8bf5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpawnProps
-  propInfos:
-  - spawnChance: 0.25
-    propPrefab: {fileID: 8755620045545428116, guid: 5ed7c74cb2c1c7043a2039627d837010, type: 3}
+  propInfos: []
 --- !u!65 &1020875975791890748
 BoxCollider:
   m_ObjectHideFlags: 0

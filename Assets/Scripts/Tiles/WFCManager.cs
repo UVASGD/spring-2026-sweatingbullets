@@ -112,6 +112,8 @@ namespace Tiles
         private readonly HashSet<Vector2Int> alleyCells = new HashSet<Vector2Int>();
         private readonly HashSet<Vector2Int> buildingCells = new HashSet<Vector2Int>();
         private readonly HashSet<Vector2Int> reservedMapFeatureCells = new HashSet<Vector2Int>();
+        private readonly Dictionary<Vector2Int, GameObject> prePlacedFloors =
+            new Dictionary<Vector2Int, GameObject>();
 
         static readonly Vector2Int[] Cardinals =
             { Vector2Int.up, Vector2Int.right, Vector2Int.down, Vector2Int.left };
@@ -124,6 +126,7 @@ namespace Tiles
         IEnumerator RunWFC()
         {
             InitializeSets();
+            IndexPrePlacedFloors();
             PlaceMainRoads();
             PlaceBuildings();
             PlaceAlleys();
@@ -686,6 +689,7 @@ namespace Tiles
                     int dy = p.y - originY;
                     PlaceBuildingCell(p, dx, dy, w, h);
                     buildingCells.Add(p);
+                    RemovePrePlacedFloorAt(p);
                     if (floorTilePrefab != null)
                     {
                         Vector3 fp = GridToWorld(p);
@@ -930,6 +934,7 @@ namespace Tiles
                     Vector3 worldPos = GridToWorld(p);
                     Quaternion quat = Quaternion.Euler(0, rot * 90, 0) * chosen.prefab.transform.rotation;
                     Instantiate(chosen.prefab, worldPos, quat, transform);
+                    RemovePrePlacedFloorAt(p);
                     if (floorTilePrefab != null)
                         Instantiate(floorTilePrefab, worldPos + Vector3.up * 0.01f,
                             floorTilePrefab.transform.rotation, transform);
@@ -948,6 +953,7 @@ namespace Tiles
                 Vector3 worldPos = GridToWorld(f.position);
                 Quaternion quat = Quaternion.Euler(0, f.rotation * 90, 0) * f.tile.prefab.transform.rotation;
                 Instantiate(f.tile.prefab, worldPos, quat, transform);
+                RemovePrePlacedFloorAt(f.position);
                 if (floorTilePrefab != null)
                     Instantiate(floorTilePrefab, worldPos + Vector3.up * 0.01f,
                         floorTilePrefab.transform.rotation, transform);
@@ -985,12 +991,47 @@ namespace Tiles
         // =====================================================================
         // Helpers
         // =====================================================================
+        // Scan the scene once before generation begins for any GameObject that looks like an
+        // instance of `floorTilePrefab` (clone of the same prefab, by name) and index it by
+        // grid cell. WFC placement sites later call RemovePrePlacedFloorAt(cell) so the
+        // pre-existing floor doesn't double up with the floor we're about to spawn.
+        void IndexPrePlacedFloors()
+        {
+            prePlacedFloors.Clear();
+            if (floorTilePrefab == null) return;
+            string prefabName = floorTilePrefab.name;
+            string clonePrefix = prefabName + "(";
+            GameObject[] all = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+            foreach (var go in all)
+            {
+                if (go == null) continue;
+                string n = go.name;
+                if (n != prefabName && !n.StartsWith(clonePrefix)) continue;
+                Vector3 wp = go.transform.position;
+                int gx = Mathf.RoundToInt(wp.x / tileSize);
+                int gy = Mathf.RoundToInt(wp.z / tileSize);
+                Vector2Int cell = new Vector2Int(gx, gy);
+                if (!prePlacedFloors.ContainsKey(cell))
+                    prePlacedFloors[cell] = go;
+            }
+        }
+
+        void RemovePrePlacedFloorAt(Vector2Int cell)
+        {
+            if (prePlacedFloors.TryGetValue(cell, out var go))
+            {
+                if (go != null) Destroy(go);
+                prePlacedFloors.Remove(cell);
+            }
+        }
+
         void PlacePathTileAt(Vector2Int pos)
         {
             if (pathTileDefinition == null || pathTileDefinition.prefab == null) return;
             Vector3 worldPos = GridToWorld(pos);
             Instantiate(pathTileDefinition.prefab, worldPos,
                 pathTileDefinition.prefab.transform.rotation, transform);
+            RemovePrePlacedFloorAt(pos);
             if (floorTilePrefab != null)
                 Instantiate(floorTilePrefab, worldPos + Vector3.up * 0.01f,
                     floorTilePrefab.transform.rotation, transform);
