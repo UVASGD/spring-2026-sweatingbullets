@@ -49,6 +49,10 @@ namespace Player
         public Transform aimPosition;
         public Transform HipFirePosition;
         [SerializeField] private Transform viewmodelRoot;
+        [Header("Pickup Equip")]
+        [SerializeField, Min(0f)] private float pickupEquipDuration = 0.25f;
+        [SerializeField] private Vector3 pickupStartLocalOffset = new Vector3(0.35f, -0.45f, 0.55f);
+        [SerializeField] private Vector3 pickupStartLocalEulerOffset = new Vector3(18f, -25f, 8f);
 
         private const string FireTrigger = "Fire";
         private const string HammerPullBool = "HammerPull";
@@ -58,6 +62,8 @@ namespace Player
         [SerializeField] private int startingAmmo = 0;
         private bool _hasWeapon;
         private int _ammoCount;
+        private Coroutine _pickupEquipRoutine;
+        private bool _isEquippingWeapon;
 
         public bool IsAiming => _isAiming;
         public bool HasWeapon => _hasWeapon;
@@ -118,6 +124,9 @@ namespace Player
         private void Update()
         {
             if (!_hasWeapon)
+                return;
+
+            if (_isEquippingWeapon)
                 return;
 
             // aiming button held
@@ -208,7 +217,7 @@ namespace Player
 
         private void FireWeapon(InputAction.CallbackContext context)
         {
-            if (!_hasWeapon)
+            if (!_hasWeapon || _isEquippingWeapon)
                 return;
 
             if (!_isHammerCocked)
@@ -329,7 +338,7 @@ namespace Player
 
         private void PullHammer(InputAction.CallbackContext context)
         {
-            if (!_hasWeapon)
+            if (!_hasWeapon || _isEquippingWeapon)
                 return;
 
             // Don't allow pulling hammer if it's already cocked or firing
@@ -348,9 +357,18 @@ namespace Player
 
         public void SetHasWeapon(bool hasWeapon)
         {
+            bool gainedWeapon = hasWeapon && !_hasWeapon;
+
             _hasWeapon = hasWeapon;
             if (!_hasWeapon)
             {
+                if (_pickupEquipRoutine != null)
+                {
+                    StopCoroutine(_pickupEquipRoutine);
+                    _pickupEquipRoutine = null;
+                }
+
+                _isEquippingWeapon = false;
                 _isAiming = false;
                 _isHammerCocked = false;
                 canFireWeapon = false;
@@ -359,6 +377,9 @@ namespace Player
             }
 
             ApplyWeaponVisibility();
+
+            if (gainedWeapon && pickupEquipDuration > 0f && viewmodelRoot != null)
+                _pickupEquipRoutine = StartCoroutine(EquipWeaponFromPickup());
         }
 
         public void AddAmmo(int amount)
@@ -372,6 +393,41 @@ namespace Player
                 return;
 
             viewmodelRoot.gameObject.SetActive(_hasWeapon);
+        }
+
+        private IEnumerator EquipWeaponFromPickup()
+        {
+            _isEquippingWeapon = true;
+            _isAiming = false;
+
+            Vector3 targetLocalPosition = HipFirePosition != null ? HipFirePosition.localPosition : transform.localPosition;
+            Quaternion targetLocalRotation = viewmodelRoot.localRotation;
+            Vector3 startLocalPosition = targetLocalPosition + pickupStartLocalOffset;
+            Quaternion startLocalRotation = targetLocalRotation * Quaternion.Euler(pickupStartLocalEulerOffset);
+
+            transform.localPosition = startLocalPosition;
+            viewmodelRoot.localRotation = startLocalRotation;
+
+            float elapsed = 0f;
+            while (elapsed < pickupEquipDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / pickupEquipDuration);
+                float easedT = Mathf.SmoothStep(0f, 1f, t);
+
+                transform.localPosition = Vector3.Lerp(startLocalPosition, targetLocalPosition, easedT);
+                viewmodelRoot.localRotation = Quaternion.Slerp(startLocalRotation, targetLocalRotation, easedT);
+
+                yield return null;
+            }
+
+            transform.localPosition = targetLocalPosition;
+            viewmodelRoot.localRotation = targetLocalRotation;
+            if (smokeSpawnPoint != null)
+                smokeSpawnPoint.localPosition = _originalSmokeLocalPos;
+
+            _isEquippingWeapon = false;
+            _pickupEquipRoutine = null;
         }
     }
 }
