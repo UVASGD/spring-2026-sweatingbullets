@@ -172,7 +172,7 @@ namespace Tiles
             
             GameObject spawnTile = GameObject.FindWithTag("Spawn");
             GameObject player = GameObject.FindWithTag("Player");
-            player.transform.position = spawnTile.transform.position + Vector3.up * 3;
+            player.transform.position = spawnTile.transform.position + Vector3.up;
             SpawnStartingPickups(spawnTile.transform.position);
 
             Vector2Int playerGrid = WorldToGrid(spawnTile.transform.position);

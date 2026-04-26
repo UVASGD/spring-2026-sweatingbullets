@@ -346,7 +346,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1361997749074146890, guid: fa7efa898b2629f419a43edd957d7213, type: 3}
       propertyPath: birdCount
-      value: 7
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 1361997749074146890, guid: fa7efa898b2629f419a43edd957d7213, type: 3}
       propertyPath: spawnArea.x
@@ -789,7 +789,9 @@ MonoBehaviour:
   playerPrefab: {fileID: 8739283196448006463, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
   gunPickupPrefab: {fileID: 886342007907028130, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
   bulletPickupPrefab: {fileID: 7002000000000000001, guid: 924d9974cb37434b85f8e782b0c91320, type: 3}
-  gunPickupSpawnOffset: {x: 1.25, y: 0.45, z: 0.75}
+  startingGunPickupCount: 2
+  gunPickupHeight: 0.45
+  gunPickupCellJitter: 1.5
   bulletPickupSpawnOffset: {x: -2.1, y: 0.7, z: 0.9}
   gunPickupScale: {x: 0.2, y: 0.2, z: 0.2}
   startingBulletPickupCount: 6
@@ -799,6 +801,9 @@ MonoBehaviour:
   useBulletPickupSeed: 0
   bulletPickupSeed: 0
   bulletPickupDistanceRange: {x: 1.8, y: 2.8}
+  nearBulletPickupCountRange: {x: 2, y: 3}
+  scatteredBulletMinSpawnDistanceCells: 2
+  scatteredBulletCellJitter: 1.5
   bulletPickupAngleSpread: 70
   bulletPickupLateralJitter: 0.25
   bulletPickupYawJitter: 25
@@ -1218,7 +1223,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbf07b0c04988464eb48079349c7bcb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeathScreenUI
-  pauseMenuScript: {fileID: 0}
+  pauseMenuScript: {fileID: 954381312}
 --- !u!1 &1690700958
 GameObject:
   m_ObjectHideFlags: 0
@@ -1435,7 +1440,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a06588ce2b084e9f82437f8a3ba74cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIToolkitScreenFade
-  fadeSpeed: 2
+  fadeSpeed: 5
 --- !u!114 &2080506935
 MonoBehaviour:
   m_ObjectHideFlags: 0
