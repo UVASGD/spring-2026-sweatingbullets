@@ -39,6 +39,18 @@ namespace Enemy
 
         public bool isDead;
 
+        public bool IsAwareOfPlayer
+        {
+            get
+            {
+                if (_stateMachine == null || isDead) return false;
+                var state = _stateMachine.ActiveStateName;
+                return state == EnemyState.Follow
+                    || state == EnemyState.Shoot
+                    || state == EnemyState.FollowUpToShoot;
+            }
+        }
+
         private PlayerNoiseEmitter _noiseEmitter;
         private Vector3 _lastHeardPosition;
         private InvestigateState _investigateState;

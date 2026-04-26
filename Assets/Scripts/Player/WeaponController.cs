@@ -69,9 +69,14 @@ namespace Player
         public bool IsAiming => _isAiming;
         public bool HasWeapon => _hasWeapon;
         public int AmmoCount => _ammoCount;
+        public bool IsHammerCocked => _isHammerCocked;
+        public bool IsEquippingWeapon => _isEquippingWeapon;
 
         public event Action OnWeaponFired;
         public event Action<ShotResolutionContext> OnWeaponShotResolved;
+        public event Action OnGunPickedUp;
+        public event Action<int> OnAmmoChanged;
+        public event Action<bool> OnHammerCockedChanged;
 
         private Vector3
             _originalSmokeLocalPos; // cached hip-fire local position of smoke spawn point
@@ -303,6 +308,7 @@ namespace Player
                 return;
 
             _ammoCount--;
+            OnAmmoChanged?.Invoke(_ammoCount);
 
             // Fire
             if (gunAnimator != null)
@@ -374,6 +380,7 @@ namespace Player
             canFireWeapon = false;
             if (gunAnimator != null)
                 gunAnimator.SetBool(HammerPullBool, _isHammerCocked);
+            OnHammerCockedChanged?.Invoke(false);
         }
 
         private void PullHammer(InputAction.CallbackContext context)
@@ -391,6 +398,7 @@ namespace Player
                 weaponAudio.pitch = 1f;
                 weaponAudio.PlayOneShot(cockingSound);
             }
+            OnHammerCockedChanged?.Invoke(true);
         }
 
         public void OnHammerPullFinished() 
@@ -402,6 +410,7 @@ namespace Player
         public void SetHasWeapon(bool hasWeapon)
         {
             bool gainedWeapon = hasWeapon && !_hasWeapon;
+            bool wasHammerCocked = _isHammerCocked;
 
             _hasWeapon = hasWeapon;
             if (!_hasWeapon)
@@ -418,17 +427,23 @@ namespace Player
                 canFireWeapon = false;
                 if (gunAnimator != null)
                     gunAnimator.SetBool(HammerPullBool, false);
+                if (wasHammerCocked)
+                    OnHammerCockedChanged?.Invoke(false);
             }
 
             ApplyWeaponVisibility();
 
             if (gainedWeapon && pickupEquipDuration > 0f && viewmodelRoot != null)
                 _pickupEquipRoutine = StartCoroutine(EquipWeaponFromPickup());
+
+            if (gainedWeapon)
+                OnGunPickedUp?.Invoke();
         }
 
         public void AddAmmo(int amount)
         {
             _ammoCount += Mathf.Max(0, amount);
+            OnAmmoChanged?.Invoke(_ammoCount);
         }
 
         private void ApplyWeaponVisibility()

@@ -7,9 +7,12 @@ using UnityEngine.SceneManagement;
 namespace Player
 {
     /// <summary>
-    /// Adds nerves while at least one enemy is visible through the player camera (frustum + LOS).
-    /// Fires a one-time spike the first time each enemy is sighted in a round.
-    /// Drop-off when sight is broken is handled by the existing NervesRecovery flow.
+    /// Pressure model: enters "under pressure" when an enemy is both visible to
+    /// the player AND aware of the player. While under pressure, sustained nerves
+    /// tick — using the visible-aware weighted rate when applicable, or a fallback
+    /// rate when the player has broken LOS but enemies are still aware. Pressure
+    /// ends when no enemy is aware of the player. The first-sight spike fires
+    /// when each unique enemy is first observed while aware.
     /// </summary>
     public class EnemyVisibleNervesInput : NervesInput
     {
@@ -33,16 +36,19 @@ namespace Player
         [SerializeField] private float additionalEnemyMultiplier = 0.4f;
         [Tooltip("Multiplier when an enemy is dead-centered on screen. 1 = no bonus.")]
         [SerializeField] private float centerednessBonus = 1.3f;
+        [Tooltip("Rate while under pressure but no aware enemies are currently visible (you've turned and run). Fraction of baseSustainedRate.")]
+        [SerializeField, Range(0f, 2f)] private float outOfSightPressureMultiplier = 0.6f;
 
         [Header("First-Sight Spike")]
         [SerializeField] private float firstSightSpike = 6f;
-        [Tooltip("Fires once per first-sighting of an enemy. Wire to a stinger AudioSource.")]
+        [Tooltip("Fires once per first-sighting of an aware enemy. Wire to a stinger AudioSource.")]
         public UnityEvent onFirstSighting;
 
         private readonly HashSet<int> _everSeenEnemyIds = new();
         private float _scanTimer;
         private float _cachedRatePerSecond;
         private float _pendingSpike;
+        private bool _underPressure;
 
         private void Reset()
         {
@@ -71,6 +77,7 @@ namespace Player
             _cachedRatePerSecond = 0f;
             _pendingSpike = 0f;
             _scanTimer = 0f;
+            _underPressure = false;
         }
 
         protected override float CalculateNervesDelta()
@@ -100,13 +107,17 @@ namespace Player
             if (cam == null) return;
 
             EnemyAI[] enemies = Object.FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
-            int visibleCount = 0;
+            int visibleAwareCount = 0;
             float weightSum = 0f;
+            bool anyAware = false;
 
             for (int i = 0; i < enemies.Length; i++)
             {
                 EnemyAI e = enemies[i];
                 if (e == null || !e.isActiveAndEnabled || e.isDead) continue;
+
+                bool isAware = e.IsAwareOfPlayer;
+                if (isAware) anyAware = true;
 
                 Vector3 targetPoint = e.eyes != null
                     ? e.eyes.transform.position
@@ -129,7 +140,10 @@ namespace Player
                     if (hitEnemy != e) continue;
                 }
 
-                visibleCount++;
+                // Visible. Only contributes to pressure if aware.
+                if (!isAware) continue;
+
+                visibleAwareCount++;
 
                 float distT = Mathf.Clamp01(worldDist / maxVisibilityDistance);
                 float distMult = distanceScale.Evaluate(distT);
@@ -148,11 +162,22 @@ namespace Player
                 }
             }
 
-            if (visibleCount == 0) return;
-
-            float meanWeight = weightSum / visibleCount;
-            float countMult = 1f + additionalEnemyMultiplier * (visibleCount - 1);
-            _cachedRatePerSecond = baseSustainedRate * meanWeight * countMult;
+            if (visibleAwareCount > 0)
+            {
+                _underPressure = true;
+                float meanWeight = weightSum / visibleAwareCount;
+                float countMult = 1f + additionalEnemyMultiplier * (visibleAwareCount - 1);
+                _cachedRatePerSecond = baseSustainedRate * meanWeight * countMult;
+            }
+            else if (_underPressure && anyAware)
+            {
+                // Player has broken LOS but enemies are still hunting them.
+                _cachedRatePerSecond = baseSustainedRate * outOfSightPressureMultiplier;
+            }
+            else
+            {
+                _underPressure = false;
+            }
         }
     }
 }

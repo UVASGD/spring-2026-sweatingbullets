@@ -7,6 +7,10 @@ public class AmbientAudio : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float targetVolume = 0.7f;
     [SerializeField] private float fadeInDuration = 1f;
 
+    [Header("Midpoint Resume")]
+    [SerializeField, Range(0f, 1f)] private float midpointMinNormalized = 0.25f;
+    [SerializeField, Range(0f, 1f)] private float midpointMaxNormalized = 0.75f;
+
     private AudioSource _source;
     private Coroutine _fadeRoutine;
 
@@ -28,6 +32,18 @@ public class AmbientAudio : MonoBehaviour
     {
         if (_fadeRoutine != null) StopCoroutine(_fadeRoutine);
         _fadeRoutine = StartCoroutine(FadeOutRoutine(duration, stopWhenDone));
+    }
+
+    public void FadeInFromRandomMidpoint()
+    {
+        if (_source.clip == null) { FadeIn(); return; }
+        float min = Mathf.Min(midpointMinNormalized, midpointMaxNormalized);
+        float max = Mathf.Max(midpointMinNormalized, midpointMaxNormalized);
+        float t = Random.Range(min, max) * _source.clip.length;
+        _source.time = Mathf.Clamp(t, 0f, Mathf.Max(0f, _source.clip.length - 0.01f));
+        if (_fadeRoutine != null) StopCoroutine(_fadeRoutine);
+        if (!_source.isPlaying) _source.Play();
+        _fadeRoutine = StartCoroutine(FadeRoutine(fadeInDuration, targetVolume));
     }
 
     private IEnumerator FadeOutRoutine(float duration, bool stopWhenDone)

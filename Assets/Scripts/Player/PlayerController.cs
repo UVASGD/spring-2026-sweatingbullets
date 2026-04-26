@@ -7,6 +7,7 @@ namespace Player
     {
         [SerializeField] private DeathCameraController deathCam;
         [SerializeField] private MonoBehaviour movementScript;
+        [SerializeField] private Audio.BattleMusicController battleMusic;
 
         private Rigidbody _rb;
         private bool _isDead;
@@ -22,6 +23,9 @@ namespace Player
             _isDead = true;
 
             Debug.Log("Omg! The player died. oof");
+
+            if (battleMusic != null)
+                battleMusic.StopBattleMusic();
 
             // Disable player movement
             if (movementScript)

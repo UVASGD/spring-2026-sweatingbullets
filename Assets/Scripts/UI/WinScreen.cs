@@ -5,9 +5,13 @@ using System.Collections;
 
 public class WinScreen : MonoBehaviour
 {
+    [SerializeField] private Audio.BattleMusicController battleMusic;
+
     public void ShowWinScreen(int round)
     {
         Debug.Log("ShowWinScreen called");
+        if (battleMusic != null)
+            battleMusic.StopBattleMusic();
         gameObject.SetActive(true);
         StartCoroutine(InitAfterFrame(round));
     }
