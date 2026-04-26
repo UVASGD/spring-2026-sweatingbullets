@@ -119,11 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!54 &902814 stripped
-Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 1870658334071614726, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
-  m_PrefabInstance: {fileID: 1701916233}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &92062995
 GameObject:
   m_ObjectHideFlags: 0
@@ -945,11 +940,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &860884440 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8836598305803269848, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
-  m_PrefabInstance: {fileID: 1701916233}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &954381311
 GameObject:
   m_ObjectHideFlags: 0
@@ -1415,36 +1405,24 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 810048756}
     - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
-      propertyPath: dryFireSound
-      value: 
-      objectReference: {fileID: 8300000, guid: 990f981c12cfbef41b1541282b2388ba, type: 3}
-    - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
-      propertyPath: swayAmplitude
-      value: 0.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
-      propertyPath: swayFrequency
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
-      propertyPath: playerRigidbody
-      value: 
-      objectReference: {fileID: 902814}
-    - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
       propertyPath: hammerPullAction
       value: 
       objectReference: {fileID: 1924092700}
     - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
-      propertyPath: swayAdsMultiplier
-      value: 0.494
-      objectReference: {fileID: 0}
-    - target: {fileID: 1972240372808292004, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
       propertyPath: aimDownSightsAction
       value: 
       objectReference: {fileID: 1363498393}
-    - target: {fileID: 4624279454764447223, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
-      propertyPath: delayBeforeIncrease
-      value: 0.25
+    - target: {fileID: 4653348164239991190, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: maxFloor
+      value: 70
+      objectReference: {fileID: 0}
+    - target: {fileID: 4653348164239991190, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: rampSeconds
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 4653348164239991190, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: baseRatePerSecond
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 6560352793576388504, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1490,18 +1468,10 @@ PrefabInstance:
       propertyPath: deathCam
       value: 
       objectReference: {fileID: 92063000}
-    - target: {fileID: 8458400472143585113, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 8739283196448006463, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
-    - target: {fileID: 8883489445756839933, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
-      propertyPath: gunModelTransform
-      value: 
-      objectReference: {fileID: 860884440}
     - target: {fileID: 8883489445756839933, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
       propertyPath: postProcessVolume
       value: 

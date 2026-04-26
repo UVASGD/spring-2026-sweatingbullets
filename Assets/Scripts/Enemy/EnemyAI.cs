@@ -24,7 +24,6 @@ namespace Enemy
         private Rigidbody _rb;
 
         [Header("Enemy Stats")]
-        [SerializeField, Range(1f, 10f)] private float difficulty;
         [SerializeField, Range(1f, 10f)] private float strafeDistance;
         [SerializeField, Range(0f, 2f)] private float aimTime;
         [SerializeField, Range(5f, 100f)] private float weaponRange;

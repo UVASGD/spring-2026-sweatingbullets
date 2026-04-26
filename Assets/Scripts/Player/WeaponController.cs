@@ -278,7 +278,7 @@ namespace Player
             float delay = 0f;
             if (nervesManager != null && maxTriggerDelay > 0f)
             {
-                float nervesNormalized = Mathf.Clamp01(nervesManager.currentNerves / 100f);
+                float nervesNormalized = Mathf.Clamp01(nervesManager.CurrentNerves / 100f);
                 // Randomize slightly so it's not a predictable fixed delay
                 delay = nervesNormalized * maxTriggerDelay * UnityEngine.Random.Range(0.6f, 1f);
             }

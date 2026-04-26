@@ -9,7 +9,7 @@ namespace Player
     /// </summary>
     public abstract class NervesInput : MonoBehaviour
     {
-        [SerializeField] private float maxContribution = 30f;
+        [SerializeField] protected float maxContribution = 30f;
 
         private float _accumulatedNerves;
 
@@ -17,6 +17,13 @@ namespace Player
         /// The maximum amount of nerves this input can contribute.
         /// </summary>
         public float MaxContribution => maxContribution;
+
+        /// <summary>
+        /// Optional escalating "floor" this input establishes — a minimum nerves
+        /// level that recovery cannot push CurrentNerves below. Default 0 (most
+        /// inputs add normal deltas that recovery is allowed to undo).
+        /// </summary>
+        public virtual float FloorContribution => 0f;
 
         /// <summary>
         /// How much nerves this input has contributed so far.
