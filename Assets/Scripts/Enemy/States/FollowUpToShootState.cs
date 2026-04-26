@@ -13,13 +13,14 @@ namespace Enemy.States
         private Vector3 _strafeTarget;
 
         private float strafeDistance;
-        //private float _strafeSpeed = 3f;
+        private float _strafeSpeed;
 
         public FollowUpToShootState(bool needsExitTime, EnemyAI enemy, Transform player, float strafeDistance,
-            float ExitTime = 0.33f)
+            float strafeSpeed = 2f, float ExitTime = 0.33f)
             : base(needsExitTime, enemy, ExitTime)
         {
             this.strafeDistance = strafeDistance;
+            _strafeSpeed = strafeSpeed;
         }
 
         public override void OnEnter()
@@ -29,8 +30,8 @@ namespace Enemy.States
             {
                 Agent.enabled = true;
                 Agent.isStopped = false;
-                Agent.speed = 2f;
-                
+                Agent.speed = _strafeSpeed;
+
                 Agent.updateRotation = false;
                 if (!RequestedExit && Agent != null) PickNewTarget();
             }

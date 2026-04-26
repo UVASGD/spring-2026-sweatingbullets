@@ -11,6 +11,11 @@ public class GameManager : MonoBehaviour
 
     public static bool IsGameOver { get; private set; }
 
+    // Difficulty deprecated — kept for reference, no longer used.
+    // public static int Difficulty => Mathf.Clamp(RoundCount, 1, 10);
+
+    public static float RoundElapsedSeconds { get; private set; }
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -37,7 +42,14 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         IsGameOver = false;
+        RoundElapsedSeconds = 0f;
         winScreen = FindObjectOfType<WinScreen>(true);
+    }
+
+    void Update()
+    {
+        if (IsGameOver) return;
+        RoundElapsedSeconds += Time.deltaTime;
     }
 
     public void ShowWinScreen()

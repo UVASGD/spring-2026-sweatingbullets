@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.AI.Navigation;
 using UnityEngine;
+using UnityEngine.AI;
 using Enemy;
 using Player;
 
@@ -42,6 +43,12 @@ namespace Tiles
         [Tooltip("Impassable tile spawned outside the grid as scenery")]
         public GameObject outsideTilePrefab;
         public int outsideRadius = 3;
+
+        [Header("Outside Decorations")]
+        [SerializeField] private GameObject cactusPrefab;
+        [SerializeField, Range(0f, 1f)] private float cactusSpawnChance = 0.25f;
+        [SerializeField] private float cactusPositionJitter = 1.5f;
+        [SerializeField] private Vector2 cactusScaleRange = new Vector2(0.85f, 1.2f);
         [Tooltip("Material using Custom/SandBlend shader — grid bounds set automatically")]
         public Material sandBlendMaterial;
 
@@ -177,13 +184,50 @@ namespace Tiles
 
             Vector2Int playerGrid = WorldToGrid(spawnTile.transform.position);
 
-            for (int i = 0; i < enemiesToSpawn; i++)
+            // Track grid cells we've already used (or rejected) so each enemy spawns somewhere
+            // unique and we don't re-test the same bad cell forever. Seeded with playerGrid both
+            // to keep enemies off the player's tile and to make the "no candidates left" sentinel
+            // (GetEnemySpawnLocation returning playerPos) trip the break check below.
+            HashSet<Vector2Int> usedCells = new HashSet<Vector2Int> { playerGrid };
+            int spawnedCount = 0;
+            int attempts = 0;
+            int maxAttempts = enemiesToSpawn * 4 + 10;
+
+            while (spawnedCount < enemiesToSpawn && attempts < maxAttempts)
             {
-                Vector2Int spawnGrid = GetEnemySpawnLocation(playerGrid);
+                attempts++;
+                Vector2Int spawnGrid = GetEnemySpawnLocation(playerGrid, usedCells);
+                if (usedCells.Contains(spawnGrid)) break; // out of candidates
+                usedCells.Add(spawnGrid);
 
                 Vector3 worldPos = GridToWorld(spawnGrid);
+
+                // Sample within half a tile — wide enough to dodge a slightly-occluded center,
+                // tight enough not to snap across a wall into a neighbouring building interior.
+                if (!NavMesh.SamplePosition(worldPos, out NavMeshHit hit, tileSize * 0.5f, NavMesh.AllAreas))
+                {
+                    Debug.LogWarning($"[WFCManager] No NavMesh near spawn cell {spawnGrid}; trying another.");
+                    continue;
+                }
+                worldPos = hit.position;
+
+                // Buildings are hollow inside (the WFC pipeline floors every cell, including building
+                // footprints), so NavMesh exists in their interiors. Reject any snap that lands in one.
+                Vector2Int finalCell = WorldToGrid(worldPos);
+                if (buildingCells.Contains(finalCell))
+                {
+                    Debug.LogWarning($"[WFCManager] Spawn snapped from {spawnGrid} into building cell {finalCell}; rejected.");
+                    continue;
+                }
+
                 GameObject clone = Instantiate(enemy, worldPos, Quaternion.identity);
                 clone.GetComponent<EnemyAI>().Init(player);
+                spawnedCount++;
+            }
+
+            if (spawnedCount < enemiesToSpawn)
+            {
+                Debug.LogWarning($"[WFCManager] Spawned {spawnedCount}/{enemiesToSpawn} enemies — ran out of valid candidates after {attempts} attempts.");
             }
         }
         void UploadPoissonKernel(int count, float radius)
@@ -343,7 +387,7 @@ namespace Tiles
             return Vector2Int.down;
         }
 
-        Vector2Int GetEnemySpawnLocation(Vector2Int playerPos)
+        Vector2Int GetEnemySpawnLocation(Vector2Int playerPos, HashSet<Vector2Int> excludeCells = null)
         {
             // Combine all valid walkable tiles
             List<Vector2Int> candidates = new List<Vector2Int>();
@@ -356,11 +400,14 @@ namespace Tiles
             // Determine preferred direction (opposite side of map)
             Vector2Int preferredDir = GetOppositeEdgeDirection(playerPos);
 
-            Vector2Int bestCandidate = candidates[0];
+            Vector2Int bestCandidate = playerPos;
             float bestScore = float.MinValue;
+            bool foundValid = false;
 
             foreach (var c in candidates)
             {
+                if (excludeCells != null && excludeCells.Contains(c)) continue;
+
                 // Manhattan distance
                 float dist = Mathf.Abs(c.x - playerPos.x) + Mathf.Abs(c.y - playerPos.y);
 
@@ -375,10 +422,13 @@ namespace Tiles
                 {
                     bestScore = score;
                     bestCandidate = c;
+                    foundValid = true;
                 }
             }
 
-            return bestCandidate;
+            // If everything was excluded, returning playerPos signals "no candidates left" —
+            // the caller's `usedCells.Contains(spawnGrid)` check picks this up and breaks.
+            return foundValid ? bestCandidate : playerPos;
         }
 
         void InitializeSets()
@@ -1318,6 +1368,17 @@ namespace Tiles
                     Instantiate(outsideTilePrefab,
                         new Vector3(x * tileSize, 0, y * tileSize),
                         outsideTilePrefab.transform.rotation, transform);
+
+                    if (cactusPrefab != null && Random.value < cactusSpawnChance)
+                    {
+                        float jitterX = Random.Range(-cactusPositionJitter, cactusPositionJitter);
+                        float jitterZ = Random.Range(-cactusPositionJitter, cactusPositionJitter);
+                        Vector3 cactusPos = new Vector3(x * tileSize + jitterX, 0f, y * tileSize + jitterZ);
+                        Quaternion cactusRot = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+                        GameObject cactus = Instantiate(cactusPrefab, cactusPos, cactusRot, transform);
+                        float scale = Random.Range(cactusScaleRange.x, cactusScaleRange.y);
+                        cactus.transform.localScale *= scale;
+                    }
                 }
             }
         }

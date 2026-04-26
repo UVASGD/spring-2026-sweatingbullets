@@ -152,7 +152,7 @@ public class CameraGunplayEffects : MonoBehaviour
         // Nerves add variation: 0 nerves = base variation, 100 nerves = double variation
         float nervesNormalized = 0f;
         if (nervesManager != null)
-            nervesNormalized = Mathf.Clamp01(nervesManager.currentNerves / 100f);
+            nervesNormalized = Mathf.Clamp01(nervesManager.CurrentNerves / 100f);
         float variationScale = 1f + nervesNormalized;
 
         // Per-shot randomized pitch
@@ -283,7 +283,7 @@ public class CameraGunplayEffects : MonoBehaviour
 
         float nervesNormalized = 0f;
         if (nervesManager != null)
-            nervesNormalized = Mathf.Clamp01(nervesManager.currentNerves / 100f);
+            nervesNormalized = Mathf.Clamp01(nervesManager.CurrentNerves / 100f);
         float nervesScale = Mathf.Lerp(1f, adsSwayNervesMultiplier, nervesNormalized);
         float verticalSway = adsSwayVerticalAmount * nervesScale;
         

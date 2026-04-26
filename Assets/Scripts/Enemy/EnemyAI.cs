@@ -24,10 +24,13 @@ namespace Enemy
         private Rigidbody _rb;
 
         [Header("Enemy Stats")]
-        [SerializeField, Range(1f, 10f)] private float difficulty;
         [SerializeField, Range(1f, 10f)] private float strafeDistance;
         [SerializeField, Range(0f, 2f)] private float aimTime;
         [SerializeField, Range(5f, 100f)] private float weaponRange;
+        [Tooltip("NavMeshAgent speed while pursuing the player in Follow state.")]
+        [SerializeField, Range(0.5f, 12f)] private float pursuitSpeed = 5f;
+        [Tooltip("NavMeshAgent speed while strafing for position in FollowUpToShoot state.")]
+        [SerializeField, Range(0.5f, 12f)] private float strafeSpeed = 2f;
 
         [Header("Detection")]
         [SerializeField] private float detectionDistance = 100f;
@@ -38,7 +41,23 @@ namespace Enemy
         [SerializeField] private float hearingRange = 20f;
         [SerializeField] private float gunshotHearingRange = 50f;
 
+        [Header("Death")]
+        [SerializeField] private AudioClip deathSound;
+        [SerializeField, Range(0f, 1f)] private float deathSoundVolume = 1f;
+
         public bool isDead;
+
+        public bool IsAwareOfPlayer
+        {
+            get
+            {
+                if (_stateMachine == null || isDead) return false;
+                var state = _stateMachine.ActiveStateName;
+                return state == EnemyState.Follow
+                    || state == EnemyState.Shoot
+                    || state == EnemyState.FollowUpToShoot;
+            }
+        }
 
         private PlayerNoiseEmitter _noiseEmitter;
         private Vector3 _lastHeardPosition;
@@ -53,6 +72,8 @@ namespace Enemy
             {
                 shoot.Range = weaponRange;
                 shoot.SetPlayer(player.transform);
+                var nm = player.GetComponentInChildren<NervesManager>();
+                if (nm != null) shoot.SetNervesManager(nm);
             }
             _rb = GetComponent<Rigidbody>();
             _stateMachine = new StateMachine<EnemyState, StateEvent>();
@@ -62,9 +83,9 @@ namespace Enemy
             _stateMachine.AddState(EnemyState.Patrol, new PatrolState(false, this, 10, 2, 2,100000));
             _stateMachine.AddState(EnemyState.Alert, new PatrolState(false, this, 10, 3.0f, 0.5f, 5));
             _investigateState = new InvestigateState(false, this);
-            _stateMachine.AddState(EnemyState.Follow, new FollowState(false, this, player.transform));
+            _stateMachine.AddState(EnemyState.Follow, new FollowState(false, this, player.transform, pursuitSpeed));
             _stateMachine.AddState(EnemyState.Shoot, new ShootState(true, this, aimTime, weaponRange));
-            _stateMachine.AddState(EnemyState.FollowUpToShoot, new FollowUpToShootState(true, this, player.transform, strafeDistance,5.0f));
+            _stateMachine.AddState(EnemyState.FollowUpToShoot, new FollowUpToShootState(true, this, player.transform, strafeDistance, strafeSpeed, 5.0f));
             _stateMachine.AddState(EnemyState.Investigate, _investigateState);
             _stateMachine.AddState(EnemyState.Dead, new DeathState(this));
 
@@ -203,6 +224,8 @@ namespace Enemy
             // Disable NavMeshAgent and other components as needed
             _agent.enabled = false;
             weapon.SetActive(false);
+            if (deathSound != null)
+                AudioSource.PlayClipAtPoint(deathSound, transform.position, deathSoundVolume);
             // Additional death logic (e.g., play animation, drop loot) could go here
         }
 

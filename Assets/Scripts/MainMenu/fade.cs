@@ -1,40 +1,39 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class fade : MonoBehaviour
 {
     public float transparency = 0.0f;
 
+    public bool IntroFadeComplete { get; private set; }
+
     void Start()
     {
-        SpriteRenderer renderer = GetComponent<SpriteRenderer>();
-        Color color = renderer.color;
-        color.a = 0f;
-        renderer.color = color;
+        SetAlpha(1f);
+        StartCoroutine(IntroFade());
+    }
+
+    IEnumerator IntroFade()
+    {
+        yield return StartCoroutine(FadeRoutine(1.0f, 0.0f));
+        IntroFadeComplete = true;
     }
 
     void SetAlpha(float alpha)
     {
-        // Access the MeshRenderer and its material
-        SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+        Image renderer = GetComponent<Image>();
 
         if (renderer != null)
         {
-
-
-            // Get the current color
             Color color = renderer.color;
-
-            // Set new alpha (value between 0.0f and 1.0f)
             color.a = alpha;
-
-            // Apply the color back to the material
             renderer.color = color;
         }
     }
 
 
-    
+
     public void fadeout()
     {
         StartCoroutine(FadeRoutine(1.0f, 0.0f));

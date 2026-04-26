@@ -5,10 +5,12 @@ namespace Enemy.States
     public class FollowState: EnemyStateBase
     {
         private Transform _target;
+        private float _moveSpeed;
 
-        public FollowState(bool needsExitTime, EnemyAI enemy, Transform target) : base(needsExitTime, enemy)
+        public FollowState(bool needsExitTime, EnemyAI enemy, Transform target, float moveSpeed = 5f) : base(needsExitTime, enemy)
         {
             _target = target;
+            _moveSpeed = moveSpeed;
         }
 
         public override void OnEnter()
@@ -16,7 +18,7 @@ namespace Enemy.States
             base.OnEnter();
             Agent.enabled = true;
             Agent.isStopped = false;
-            Agent.speed = 5f;
+            Agent.speed = _moveSpeed;
         }
 
         public override void OnLogic()

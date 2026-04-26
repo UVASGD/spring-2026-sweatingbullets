@@ -73,6 +73,11 @@ namespace Player
             public Vector3 Point { get; }
         }
 
+        private void Reset()
+        {
+            maxContribution = 25f;
+        }
+
         private void Awake()
         {
             if (weaponController == null)

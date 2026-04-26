@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,6 +12,10 @@ namespace Player
         [SerializeField] private AudioSource pickupAudio;
 
         private readonly Collider[] _pickupHits = new Collider[16];
+        private PickupItem _currentNearest;
+
+        public event Action<PickupItem> OnNearestPickupChanged;
+        public PickupItem CurrentNearest => _currentNearest;
 
         private void Awake()
         {
@@ -40,6 +45,8 @@ namespace Player
 
         private void Update()
         {
+            UpdateNearest();
+
             if (interactAction != null)
                 return;
 
@@ -57,9 +64,38 @@ namespace Player
 
         private void TryPickupNearest()
         {
+            PickupItem nearest = _currentNearest != null ? _currentNearest : FindNearestPickup();
+            if (nearest == null)
+                return;
+
+            nearest.TryPickup(weaponController, pickupAudio);
+
+            // Destroy() defers until end of frame, so the picked-up collider is
+            // still in the physics scene right now. Clear the cache and notify;
+            // the next Update() will re-scan once the destruction has finalized.
+            _currentNearest = null;
+            OnNearestPickupChanged?.Invoke(null);
+        }
+
+        private void UpdateNearest()
+        {
             PickupItem nearest = FindNearestPickup();
-            if (nearest != null)
-                nearest.TryPickup(weaponController, pickupAudio);
+
+            // If the cached pickup was destroyed externally (e.g., by the gun
+            // pickup's "destroy other guns" path), Unity's operator== treats it
+            // as null. Emit the change so listeners learn the previous pickup is
+            // gone, then continue with the fresh scan.
+            if (!ReferenceEquals(_currentNearest, null) && _currentNearest == null)
+            {
+                _currentNearest = null;
+                OnNearestPickupChanged?.Invoke(null);
+            }
+
+            if (nearest == _currentNearest)
+                return;
+
+            _currentNearest = nearest;
+            OnNearestPickupChanged?.Invoke(_currentNearest);
         }
 
         private PickupItem FindNearestPickup()

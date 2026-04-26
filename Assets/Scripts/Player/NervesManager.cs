@@ -17,9 +17,10 @@ namespace Player
         [SerializeField] private NervesAudioController audioController;
 
         [Header("Debug (Read Only)")]
-        public float currentNerves { get; set; }
+        public float CurrentNerves { get; private set; }
         [SerializeField] private float totalInputsDelta;
         [SerializeField] private float recoveryDelta;
+        [SerializeField] private float currentFloor;
         [SerializeField] private bool showDebugInfo = true;
 
         private NervesInput[] _inputs;
@@ -42,9 +43,23 @@ namespace Player
 
         private void Update()
         {
+            if (GameManager.IsGameOver) return;
+
+            currentFloor = ComputeFloor();
+            if (CurrentNerves < currentFloor)
+                CurrentNerves = currentFloor;
+
             ProcessInputs();
             ProcessRecovery();
             PushNervesToControllers();
+        }
+
+        private float ComputeFloor()
+        {
+            float floor = 0f;
+            for (int i = 0; i < _inputs.Length; i++)
+                floor += _inputs[i].FloorContribution;
+            return Mathf.Clamp(floor, MinNerves, MaxNerves);
         }
 
         private void ProcessInputs()
@@ -99,19 +114,20 @@ namespace Player
 
         private void AddNerves(float amount)
         {
-            currentNerves = Mathf.Clamp(currentNerves + amount, MinNerves, MaxNerves);
+            CurrentNerves = Mathf.Clamp(CurrentNerves + amount, MinNerves, MaxNerves);
         }
 
         private float RemoveNerves(float amount)
         {
-            float before = currentNerves;
-            currentNerves = Mathf.Clamp(currentNerves - amount, MinNerves, MaxNerves);
-            return before - currentNerves;
+            float before = CurrentNerves;
+            float lowerBound = Mathf.Max(MinNerves, currentFloor);
+            CurrentNerves = Mathf.Clamp(CurrentNerves - amount, lowerBound, MaxNerves);
+            return before - CurrentNerves;
         }
 
         private void ResetAllNervesState()
         {
-            currentNerves = 0f;
+            CurrentNerves = 0f;
             totalInputsDelta = 0f;
             recoveryDelta = 0f;
 
@@ -122,10 +138,10 @@ namespace Player
         private void PushNervesToControllers()
         {
             if (visualController != null)
-                visualController.SetNervesLevel(currentNerves);
+                visualController.SetNervesLevel(CurrentNerves);
 
             if (audioController != null)
-                audioController.SetNervesLevel(currentNerves);
+                audioController.SetNervesLevel(CurrentNerves);
         }
 
         private void OnGUI()
@@ -137,9 +153,11 @@ namespace Player
             GUILayout.Label("Nerves System Debug", new GUIStyle(GUI.skin.label) { fontSize = 16, fontStyle = FontStyle.Bold });
             GUILayout.Space(10);
 
-            GUILayout.Label($"Current Nerves: {currentNerves:F1}");
+            GUILayout.Label($"Current Nerves: {CurrentNerves:F1}");
+            GUILayout.Label($"Floor: {currentFloor:F1}");
             GUILayout.Label($"Inputs Delta: {totalInputsDelta:F2}");
             GUILayout.Label($"Recovery Delta: {recoveryDelta:F2}");
+            GUILayout.Label($"Round Time: {GameManager.RoundElapsedSeconds:F1}s"); // Difficulty deprecated — was: Difficulty: {GameManager.Difficulty}
             GUILayout.Space(5);
 
             GUILayout.Label("Inputs:");

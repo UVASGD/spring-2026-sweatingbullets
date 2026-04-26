@@ -10,11 +10,13 @@ namespace Player
     public class NervesRecovery : MonoBehaviour
     {
         [Header("Recovery Rates")]
-        [SerializeField] private float standingStillDecreaseRate = 10f;
-        [SerializeField] private float crouchingDecreaseRate = 15f;
+        [SerializeField] private float standingStillDecreaseRate = 12f;
+        [SerializeField] private float crouchingDecreaseRate = 18f;
+        [Tooltip("Slow recovery while moving (not idle, not crouched, not sprinting, not aiming).")]
+        [SerializeField] private float walkingDecreaseRate = 4f;
 
         [Header("Recovery Delay")]
-        [SerializeField] private float recoveryDelay = 1.5f;
+        [SerializeField] private float recoveryDelay = 1.0f;
 
         [Header("References")]
         [SerializeField] private WeaponController weaponController;
@@ -50,9 +52,7 @@ namespace Player
             if (characterController == null)
                 return 0f;
 
-            bool canRecover = characterController.isCrouching || characterController.isIdle;
-
-            if (!canRecover)
+            if (characterController.isSprinting)
             {
                 _recoveryTimer = 0f;
                 return 0f;
@@ -65,7 +65,10 @@ namespace Player
             if (characterController.isCrouching)
                 return crouchingDecreaseRate * Time.deltaTime;
 
-            return standingStillDecreaseRate * Time.deltaTime;
+            if (characterController.isIdle)
+                return standingStillDecreaseRate * Time.deltaTime;
+
+            return walkingDecreaseRate * Time.deltaTime;
         }
     }
 }

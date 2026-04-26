@@ -29,6 +29,7 @@ namespace Enemy.States
             LookAtPlayer();
             _shooter = Enemy.weapon.GetComponent<EnemyShoot>();
             _shooter.Range = _weaponRange;
+            _shooter.PlayCockingSound();
         }
         
         public override void OnLogic()

@@ -10,10 +10,15 @@ namespace Player
     {
         [Header("ADS Settings")]
         [SerializeField] private float delayBeforeIncrease = 0.5f;
-        [SerializeField] private float increaseRate = 5f;
+        [SerializeField] private float increaseRate = 3.5f;
         [SerializeField] private WeaponController weaponController;
 
         private float _adsTimer;
+
+        private void Reset()
+        {
+            maxContribution = 20f;
+        }
 
         private void Awake()
         {

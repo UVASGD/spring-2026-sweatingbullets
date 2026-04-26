@@ -50,6 +50,17 @@ namespace Player
                     AudioSource.PlayClipAtPoint(pickupSound, transform.position);
             }
 
+            if (pickupType == PickupType.Gun)
+            {
+                PickupItem[] all = FindObjectsByType<PickupItem>(FindObjectsSortMode.None);
+                for (int i = 0; i < all.Length; i++)
+                {
+                    PickupItem other = all[i];
+                    if (other != this && other.pickupType == PickupType.Gun)
+                        Destroy(other.gameObject);
+                }
+            }
+
             Destroy(gameObject);
             return true;
         }
