@@ -31,12 +31,14 @@ public class WinScreen : MonoBehaviour
         var restartButton   = root.Q<Button>("RestartButton");
         var nextRoundButton = root.Q<Button>("NextRoundButton");
         var quitButton      = root.Q<Button>("QuitButton");
-        var difficultyLabel = root.Q<Label>("DifficultyLabel");
+        // Difficulty deprecated.
+        // var difficultyLabel = root.Q<Label>("DifficultyLabel");
 
         if (restartButton != null)   restartButton.clicked   += RestartGame;
         if (nextRoundButton != null) nextRoundButton.clicked += NextRound;
         if (quitButton != null)      quitButton.clicked      += QuitGame;
-        if (difficultyLabel != null) difficultyLabel.text = $"Difficulty {round}";
+        // Difficulty deprecated.
+        // if (difficultyLabel != null) difficultyLabel.text = $"Difficulty {round}";
 
         if (overlay == null) { yield break; }
 

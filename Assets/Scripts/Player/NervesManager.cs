@@ -157,7 +157,7 @@ namespace Player
             GUILayout.Label($"Floor: {currentFloor:F1}");
             GUILayout.Label($"Inputs Delta: {totalInputsDelta:F2}");
             GUILayout.Label($"Recovery Delta: {recoveryDelta:F2}");
-            GUILayout.Label($"Round Time: {GameManager.RoundElapsedSeconds:F1}s  Difficulty: {GameManager.Difficulty}");
+            GUILayout.Label($"Round Time: {GameManager.RoundElapsedSeconds:F1}s"); // Difficulty deprecated — was: Difficulty: {GameManager.Difficulty}
             GUILayout.Space(5);
 
             GUILayout.Label("Inputs:");

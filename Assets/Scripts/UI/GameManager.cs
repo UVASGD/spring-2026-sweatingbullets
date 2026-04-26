@@ -11,7 +11,8 @@ public class GameManager : MonoBehaviour
 
     public static bool IsGameOver { get; private set; }
 
-    public static int Difficulty => Mathf.Clamp(RoundCount, 1, 10);
+    // Difficulty deprecated — kept for reference, no longer used.
+    // public static int Difficulty => Mathf.Clamp(RoundCount, 1, 10);
 
     public static float RoundElapsedSeconds { get; private set; }
 
