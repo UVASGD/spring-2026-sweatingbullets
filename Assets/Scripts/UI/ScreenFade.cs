@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UIElements;
 using System.Collections;
 
@@ -7,6 +8,7 @@ public class UIToolkitScreenFade : MonoBehaviour
     private VisualElement fadeScreen;
 
     [SerializeField] private float fadeSpeed = 2f;
+    [SerializeField] private UnityEvent onFadeInComplete;
 
     void Awake()
     {
@@ -38,6 +40,7 @@ public class UIToolkitScreenFade : MonoBehaviour
 
     public IEnumerator FadeIn()
     {
+        yield return new WaitForSeconds(1.0f);
         float alpha = fadeScreen.style.opacity.value;
 
         while (alpha > 0)
@@ -46,5 +49,7 @@ public class UIToolkitScreenFade : MonoBehaviour
             fadeScreen.style.opacity = alpha;
             yield return null;
         }
+
+        onFadeInComplete?.Invoke();
     }
 }
