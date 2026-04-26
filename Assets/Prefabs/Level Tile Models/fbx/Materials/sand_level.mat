@@ -27,6 +27,7 @@ Material:
   m_ValidKeywords:
   - _NORMALMAP
   - _OCCLUSIONMAP
+  - _SPECULAR_SETUP
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -59,6 +60,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _Smoothness: 0.165
+    - _WorkflowMode: 0
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
