@@ -6,12 +6,18 @@ public class fade : MonoBehaviour
 {
     public float transparency = 0.0f;
 
+    public bool IntroFadeComplete { get; private set; }
+
     void Start()
     {
-        Image renderer = GetComponent<Image>();
-        Color color = renderer.color;
-        color.a = 0f;
-        renderer.color = color;
+        SetAlpha(1f);
+        StartCoroutine(IntroFade());
+    }
+
+    IEnumerator IntroFade()
+    {
+        yield return StartCoroutine(FadeRoutine(1.0f, 0.0f));
+        IntroFadeComplete = true;
     }
 
     void SetAlpha(float alpha)

@@ -27448,7 +27448,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1302091546
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31772,6 +31772,7 @@ MonoBehaviour:
   startPos: {x: -0.48081785, y: -0.15448394, z: -32.15}
   camSpeed: 5
   camAccel: 0.25
+  fadeController: {fileID: 143939561}
 --- !u!82 &1496115030
 AudioSource:
   m_ObjectHideFlags: 0

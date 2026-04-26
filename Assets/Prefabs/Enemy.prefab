@@ -166,6 +166,8 @@ MonoBehaviour:
   strafeDistance: 2
   aimTime: 1
   weaponRange: 5
+  pursuitSpeed: 5
+  strafeSpeed: 2
   detectionDistance: 100
   viewAngle: 120
   viewOffsets:
@@ -176,7 +178,9 @@ MonoBehaviour:
   - {x: 0, y: 0, z: 0.4}
   hearingRange: 20
   gunshotHearingRange: 50
-  isDead: 0
+  deathSound: {fileID: 8300000, guid: d7c420263c51d423dab382be78779449, type: 3}
+  deathSoundVolume: 1
+  isDead: 1
 --- !u!195 &1668853778700397327
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -601,6 +605,9 @@ MonoBehaviour:
   enemyGunRaycastOrigin: {fileID: 7060675542470729675}
   cockingSound: {fileID: 8300000, guid: 7a16d8d9742a742a48f4b64389818274, type: 3}
   fireSound: {fileID: 8300000, guid: 2b8473949a6be47aab05858139101914, type: 3}
+  baseMissChance: 0.05
+  maxMissChance: 0.45
+  maxMissAngleDegrees: 3
 --- !u!65 &1153834169905774045
 BoxCollider:
   m_ObjectHideFlags: 0

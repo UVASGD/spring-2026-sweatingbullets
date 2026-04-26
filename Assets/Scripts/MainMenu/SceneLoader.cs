@@ -23,7 +23,11 @@ public class SceneLoader : MonoBehaviour
 
     public void quitGame()
     {
-        Application.Quit();
         Debug.Log("Game has been quitted");
+        Application.Quit();
+
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #endif
     }
 }

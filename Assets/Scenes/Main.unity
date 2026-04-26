@@ -1855,6 +1855,10 @@ PrefabInstance:
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 8883489445756839933, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
+      propertyPath: showDebugInfo
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8883489445756839933, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
       propertyPath: postProcessVolume
       value: 
       objectReference: {fileID: 832575518}
