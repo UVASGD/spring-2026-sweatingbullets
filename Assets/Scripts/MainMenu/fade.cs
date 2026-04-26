@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class fade : MonoBehaviour
@@ -7,7 +8,7 @@ public class fade : MonoBehaviour
 
     void Start()
     {
-        SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+        Image renderer = GetComponent<Image>();
         Color color = renderer.color;
         color.a = 0f;
         renderer.color = color;
@@ -15,26 +16,18 @@ public class fade : MonoBehaviour
 
     void SetAlpha(float alpha)
     {
-        // Access the MeshRenderer and its material
-        SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+        Image renderer = GetComponent<Image>();
 
         if (renderer != null)
         {
-
-
-            // Get the current color
             Color color = renderer.color;
-
-            // Set new alpha (value between 0.0f and 1.0f)
             color.a = alpha;
-
-            // Apply the color back to the material
             renderer.color = color;
         }
     }
 
 
-    
+
     public void fadeout()
     {
         StartCoroutine(FadeRoutine(1.0f, 0.0f));
