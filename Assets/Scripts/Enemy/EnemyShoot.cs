@@ -31,6 +31,12 @@ namespace Enemy
             player = p;
         }
 
+        public void PlayCockingSound()
+        {
+            if (audioSource != null && cockingSound != null)
+                audioSource.PlayOneShot(cockingSound);
+        }
+
         public void FireWeapon() // aim delay will be built in here
         {
             // Create particles

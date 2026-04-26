@@ -24,6 +24,18 @@ public class AmbientAudio : MonoBehaviour
         _fadeRoutine = StartCoroutine(FadeRoutine(fadeInDuration, targetVolume));
     }
 
+    public void FadeOut(float duration, bool stopWhenDone = true)
+    {
+        if (_fadeRoutine != null) StopCoroutine(_fadeRoutine);
+        _fadeRoutine = StartCoroutine(FadeOutRoutine(duration, stopWhenDone));
+    }
+
+    private IEnumerator FadeOutRoutine(float duration, bool stopWhenDone)
+    {
+        yield return FadeRoutine(duration, 0f);
+        if (stopWhenDone) _source.Stop();
+    }
+
     private IEnumerator FadeRoutine(float duration, float endVolume)
     {
         float startVolume = _source.volume;

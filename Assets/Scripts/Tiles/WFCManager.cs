@@ -43,6 +43,12 @@ namespace Tiles
         [Tooltip("Impassable tile spawned outside the grid as scenery")]
         public GameObject outsideTilePrefab;
         public int outsideRadius = 3;
+
+        [Header("Outside Decorations")]
+        [SerializeField] private GameObject cactusPrefab;
+        [SerializeField, Range(0f, 1f)] private float cactusSpawnChance = 0.25f;
+        [SerializeField] private float cactusPositionJitter = 1.5f;
+        [SerializeField] private Vector2 cactusScaleRange = new Vector2(0.85f, 1.2f);
         [Tooltip("Material using Custom/SandBlend shader — grid bounds set automatically")]
         public Material sandBlendMaterial;
 
@@ -1362,6 +1368,17 @@ namespace Tiles
                     Instantiate(outsideTilePrefab,
                         new Vector3(x * tileSize, 0, y * tileSize),
                         outsideTilePrefab.transform.rotation, transform);
+
+                    if (cactusPrefab != null && Random.value < cactusSpawnChance)
+                    {
+                        float jitterX = Random.Range(-cactusPositionJitter, cactusPositionJitter);
+                        float jitterZ = Random.Range(-cactusPositionJitter, cactusPositionJitter);
+                        Vector3 cactusPos = new Vector3(x * tileSize + jitterX, 0f, y * tileSize + jitterZ);
+                        Quaternion cactusRot = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+                        GameObject cactus = Instantiate(cactusPrefab, cactusPos, cactusRot, transform);
+                        float scale = Random.Range(cactusScaleRange.x, cactusScaleRange.y);
+                        cactus.transform.localScale *= scale;
+                    }
                 }
             }
         }

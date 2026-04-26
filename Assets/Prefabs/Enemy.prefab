@@ -163,7 +163,6 @@ MonoBehaviour:
   weapon: {fileID: 3290567818300305249}
   player: {fileID: 0}
   eyes: {fileID: 7568979266711893593}
-  difficulty: 1
   strafeDistance: 2
   aimTime: 1
   weaponRange: 5
@@ -600,8 +599,8 @@ MonoBehaviour:
   smokeParticleSpawnPoint: {fileID: 3111283072310975053}
   audioSource: {fileID: 411672067323512549}
   enemyGunRaycastOrigin: {fileID: 7060675542470729675}
-  cockingSound: {fileID: 0}
-  fireSound: {fileID: 0}
+  cockingSound: {fileID: 8300000, guid: 7a16d8d9742a742a48f4b64389818274, type: 3}
+  fireSound: {fileID: 8300000, guid: 2b8473949a6be47aab05858139101914, type: 3}
 --- !u!65 &1153834169905774045
 BoxCollider:
   m_ObjectHideFlags: 0
