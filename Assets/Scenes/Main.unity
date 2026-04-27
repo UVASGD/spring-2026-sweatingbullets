@@ -861,7 +861,7 @@ MonoBehaviour:
   playerPrefab: {fileID: 8739283196448006463, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
   gunPickupPrefab: {fileID: 886342007907028130, guid: cea1efa246abece44b00f2e37fa874f9, type: 3}
   bulletPickupPrefab: {fileID: 7002000000000000001, guid: 924d9974cb37434b85f8e782b0c91320, type: 3}
-  startingGunPickupCount: 2
+  startingGunPickupCount: 3
   gunPickupHeight: 0.45
   gunPickupCellJitter: 1.5
   bulletPickupSpawnOffset: {x: -2.1, y: 0.7, z: 0.9}
@@ -922,6 +922,7 @@ MonoBehaviour:
   enemy: {fileID: 57577454695695748, guid: a16ac3888d58b474390bd9894ce9eb9d, type: 3}
   spawnPoints: []
   enemiesToSpawn: 1
+  enemyMinSpawnDistance: 7
 --- !u!114 &794702990
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1352,7 +1353,7 @@ MonoBehaviour:
   transitionAudioSource: {fileID: 999800106}
   transitionStinger: {fileID: 8300000, guid: c9c3b71b1938cf044b21dcbc7f62160f, type: 3}
   transitionToActionTime: 3
-  cutTransitionAtActionStart: 0
+  cutTransitionAtActionStart: 1
   actionFadeOutDuration: 1
 --- !u!82 &999800106
 AudioSource:

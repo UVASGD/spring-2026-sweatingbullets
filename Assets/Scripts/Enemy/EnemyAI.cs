@@ -41,6 +41,11 @@ namespace Enemy
         [SerializeField] private float hearingRange = 20f;
         [SerializeField] private float gunshotHearingRange = 50f;
 
+        [Header("Awareness")]
+        [Tooltip("How long after losing sight the enemy keeps actively pursuing the player " +
+                 "before falling through to Investigate at the last seen position.")]
+        [SerializeField, Range(0f, 30f)] private float sightMemoryDuration = 4f;
+
         [Header("Death")]
         [SerializeField] private AudioClip deathSound;
         [SerializeField, Range(0f, 1f)] private float deathSoundVolume = 1f;
@@ -55,13 +60,18 @@ namespace Enemy
                 var state = _stateMachine.ActiveStateName;
                 return state == EnemyState.Follow
                     || state == EnemyState.Shoot
-                    || state == EnemyState.FollowUpToShoot;
+                    || state == EnemyState.FollowUpToShoot
+                    || state == EnemyState.Investigate;
             }
         }
 
         private PlayerNoiseEmitter _noiseEmitter;
         private Vector3 _lastHeardPosition;
+        private Vector3 _lastSeenPosition;
+        private float _lastSeenTime = float.NegativeInfinity;
         private InvestigateState _investigateState;
+
+        private bool HasRecentSight() => Time.time - _lastSeenTime <= sightMemoryDuration;
         
         public void Init(GameObject p)
         {
@@ -131,16 +141,17 @@ namespace Enemy
                 (transition) => !PlayerInRange() && CanSeePlayer()
             ));
 
-            _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Follow, EnemyState.Patrol,
-                (transition) => !CanSeePlayer())
+            // Lost sight while pursuing: stay in Follow during the grace window (still chasing
+            // the player's live position), then drop to Investigate at the last seen position.
+            _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Follow, EnemyState.Investigate,
+                (transition) => !CanSeePlayer() && !HasRecentSight(),
+                onTransition: (transition) => _investigateState.SetTargetPosition(_lastSeenPosition))
             );
 
-            _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Shoot, EnemyState.Patrol,
-                (transition) => !CanSeePlayer())
-            );
-
+            // Lost sight while shooting: drop back to Follow so the grace-window pursuit logic
+            // (and Follow → Investigate fallback) handles the rest in one place.
             _stateMachine.AddTransition(new Transition<EnemyState>(EnemyState.Shoot, EnemyState.Follow,
-                (transition) => !PlayerInRange())
+                (transition) => !CanSeePlayer() || !PlayerInRange())
             );
 
             // --- Trigger-based transitions (instant events) ---
@@ -244,6 +255,17 @@ namespace Enemy
 
         private bool CanSeePlayer()
         {
+            bool seen = CheckSight();
+            if (seen)
+            {
+                _lastSeenTime = Time.time;
+                _lastSeenPosition = player.transform.position;
+            }
+            return seen;
+        }
+
+        private bool CheckSight()
+        {
             if (player == null) return false;
 
             Vector3 direction = player.transform.position - eyes.transform.position;
@@ -257,13 +279,9 @@ namespace Enemy
             float angle = Vector3.Angle(transform.forward, direction);
             if (angle > viewAngle / 2f)
             {
-                //print(angle + ", " + viewAngle);
-
                 return false;
             }
 
-        
-            
             if (CheckDir(eyes.transform.position, direction, distance))
             {
                 return true;

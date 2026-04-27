@@ -161,11 +161,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   weapon: {fileID: 3290567818300305249}
-  player: {fileID: 0}
+  player: {fileID: 8739283196448006463, guid: 947435d5ed6d28a4098e5ad6963d723e, type: 3}
   eyes: {fileID: 7568979266711893593}
   strafeDistance: 2
-  aimTime: 1
-  weaponRange: 5
+  aimTime: 1.5
+  weaponRange: 30
   pursuitSpeed: 5
   strafeSpeed: 2
   detectionDistance: 100
@@ -605,9 +605,9 @@ MonoBehaviour:
   enemyGunRaycastOrigin: {fileID: 7060675542470729675}
   cockingSound: {fileID: 8300000, guid: 7a16d8d9742a742a48f4b64389818274, type: 3}
   fireSound: {fileID: 8300000, guid: 2b8473949a6be47aab05858139101914, type: 3}
-  baseMissChance: 0.05
-  maxMissChance: 0.45
-  maxMissAngleDegrees: 3
+  baseMissChance: 0.207
+  maxMissChance: 0.462
+  maxMissAngleDegrees: 4.93
 --- !u!65 &1153834169905774045
 BoxCollider:
   m_ObjectHideFlags: 0

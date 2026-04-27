@@ -140,6 +140,8 @@ namespace Tiles
         public GameObject enemy;
         public List<Transform> spawnPoints;
         public int enemiesToSpawn;
+        [Tooltip("Minimum Manhattan distance (in cells) between an enemy spawn and the player.")]
+        [SerializeField, Min(0)] private int enemyMinSpawnDistance = 4;
 
         // ---- Internal state ----
         private readonly HashSet<Vector2Int> mainRoadCells = new HashSet<Vector2Int>();
@@ -372,63 +374,39 @@ namespace Tiles
                 }
             }
 
-        Vector2Int GetOppositeEdgeDirection(Vector2Int playerPos)
-        {
-            int distLeft = playerPos.x;
-            int distRight = gridSizeX - 1 - playerPos.x;
-            int distBottom = playerPos.y;
-            int distTop = gridSizeY - 1 - playerPos.y;
-
-            int min = Mathf.Min(distLeft, distRight, distBottom, distTop);
-
-            if (min == distLeft) return Vector2Int.right;
-            if (min == distRight) return Vector2Int.left;
-            if (min == distBottom) return Vector2Int.up;
-            return Vector2Int.down;
-        }
-
         Vector2Int GetEnemySpawnLocation(Vector2Int playerPos, HashSet<Vector2Int> excludeCells = null)
         {
-            // Combine all valid walkable tiles
-            List<Vector2Int> candidates = new List<Vector2Int>();
-            candidates.AddRange(mainRoadCells);
-            candidates.AddRange(alleyCells);
+            // Walkable cells only — roads and alleys.
+            List<Vector2Int> farEnough = new List<Vector2Int>();
+            List<Vector2Int> anyAvailable = new List<Vector2Int>();
 
-            if (candidates.Count == 0)
-                return playerPos; // fallback safety
-
-            // Determine preferred direction (opposite side of map)
-            Vector2Int preferredDir = GetOppositeEdgeDirection(playerPos);
-
-            Vector2Int bestCandidate = playerPos;
-            float bestScore = float.MinValue;
-            bool foundValid = false;
-
-            foreach (var c in candidates)
+            void Consider(Vector2Int c)
             {
-                if (excludeCells != null && excludeCells.Contains(c)) continue;
-
-                // Manhattan distance
-                float dist = Mathf.Abs(c.x - playerPos.x) + Mathf.Abs(c.y - playerPos.y);
-
-                // Direction bias (dot product)
-                Vector2Int dir = c - playerPos;
-                float directionalScore = Vector2.Dot(dir, preferredDir);
-
-                // Final score (tweak weights if needed)
-                float score = dist * 1.0f + directionalScore * 2.0f;
-
-                if (score > bestScore)
-                {
-                    bestScore = score;
-                    bestCandidate = c;
-                    foundValid = true;
-                }
+                if (excludeCells != null && excludeCells.Contains(c)) return;
+                anyAvailable.Add(c);
+                int dist = Mathf.Abs(c.x - playerPos.x) + Mathf.Abs(c.y - playerPos.y);
+                if (dist >= enemyMinSpawnDistance) farEnough.Add(c);
             }
 
-            // If everything was excluded, returning playerPos signals "no candidates left" —
-            // the caller's `usedCells.Contains(spawnGrid)` check picks this up and breaks.
-            return foundValid ? bestCandidate : playerPos;
+            foreach (var c in mainRoadCells) Consider(c);
+            foreach (var c in alleyCells) Consider(c);
+
+            // Prefer cells past the min-distance threshold; if none qualify, fall back to the
+            // farthest cell available so we still spawn something rather than crowding the player.
+            if (farEnough.Count > 0)
+                return farEnough[Random.Range(0, farEnough.Count)];
+
+            if (anyAvailable.Count == 0)
+                return playerPos; // signals "no candidates left" to the caller
+
+            Vector2Int farthest = anyAvailable[0];
+            int bestDist = -1;
+            foreach (var c in anyAvailable)
+            {
+                int d = Mathf.Abs(c.x - playerPos.x) + Mathf.Abs(c.y - playerPos.y);
+                if (d > bestDist) { bestDist = d; farthest = c; }
+            }
+            return farthest;
         }
 
         void InitializeSets()
@@ -1365,9 +1343,10 @@ namespace Tiles
                 for (int y = -outsideRadius; y < gridSizeY + outsideRadius; y++)
                 {
                     if (x >= 0 && x < gridSizeX && y >= 0 && y < gridSizeY) continue;
-                    Instantiate(outsideTilePrefab,
+                    GameObject outside = Instantiate(outsideTilePrefab,
                         new Vector3(x * tileSize, 0, y * tileSize),
                         outsideTilePrefab.transform.rotation, transform);
+                    ExcludeFromNavMesh(outside);
 
                     if (cactusPrefab != null && Random.value < cactusSpawnChance)
                     {
@@ -1378,9 +1357,21 @@ namespace Tiles
                         GameObject cactus = Instantiate(cactusPrefab, cactusPos, cactusRot, transform);
                         float scale = Random.Range(cactusScaleRange.x, cactusScaleRange.y);
                         cactus.transform.localScale *= scale;
+                        ExcludeFromNavMesh(cactus);
                     }
                 }
             }
+        }
+
+        // Mark an object (and its children) as excluded from NavMesh baking. Used for the
+        // outside scenery tiles and cacti so the NavMesh agent surface stops at the grid edge
+        // and agents can't path onto/through impassable scenery.
+        static void ExcludeFromNavMesh(GameObject go)
+        {
+            if (go == null) return;
+            NavMeshModifier mod = go.GetComponent<NavMeshModifier>();
+            if (mod == null) mod = go.AddComponent<NavMeshModifier>();
+            mod.ignoreFromBuild = true;
         }
 
         // =====================================================================
